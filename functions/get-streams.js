@@ -1,35 +1,46 @@
 // netlify/functions/get-streams.js
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const fetch = require("node-fetch");
 
-exports.handler = async function () {
+exports.handler = async () => {
   try {
-    const { data, error } = await supabase
-      .from('streams')
-      .select('id,source,match_name,iframe_url,direct_url,thumbnail,last_seen')
-      .eq('active', true)
-      .order('last_seen', { ascending: false })
-      .limit(500);
+    const SCOREBAT_API = process.env.SCOREBAT_API_URL; // e.g. "https://www.scorebat.com/video-api/v3/feed/?token=YOUR_TOKEN"
 
-    if (error) {
-      console.error('Supabase get-streams error', error);
-      return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    if (!SCOREBAT_API) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing SCOREBAT_API_URL environment variable" })
+      };
     }
 
-    // Normalize so dashboard can easily use `embedUrl`
-    const normalized = data.map(row => ({
-      id: row.id,
-      source: row.source,
-      match: row.match_name,
-      iframe_url: row.iframe_url,
-      direct_url: row.direct_url,
-      thumbnail: row.thumbnail || null,
-      embedUrl: row.iframe_url || row.direct_url
+    console.log("Fetching from Scorebat:", SCOREBAT_API);
+    const response = await fetch(SCOREBAT_API);
+    const data = await response.json();
+
+    if (!data.response || !Array.isArray(data.response)) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Invalid API response" })
+      };
+    }
+
+    // Map the Scorebat matches to a simple structure
+    const matches = data.response.map(match => ({
+      match: match.title,
+      thumbnail: match.thumbnail,
+      iframe: match.videos?.[0]?.embed || "" // embed HTML from Scorebat
     }));
 
-    return { statusCode: 200, body: JSON.stringify(normalized) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify(matches)
+    };
+
   } catch (err) {
-    console.error('get-streams error', err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    console.error("Error fetching Scorebat streams:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Failed to fetch streams" })
+    };
   }
 };
+
