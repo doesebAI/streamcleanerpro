@@ -129,6 +129,43 @@ async function checkUserAccess() {
 }
 
 document.addEventListener("DOMContentLoaded", checkUserAccess);
+document.getElementById("downloadSourcesBtn").addEventListener("click", () => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Approved Stream Sources</title>
+</head>
+<body>
+  <h2>✅ Approved Stream Sources</h2>
+  <ul>
+    <li><a href="https://www.streameast100.com/">StreamEast</a></li>
+    <li><a href="https://totalsportek.football/">TOTALSPORTEK</a></li>
+    <li><a href="https://www.footybite.to/">FOOTYBITE</a></li>
+    <li><a href="https://www.nflbite.to/">NFLBITE</a></li>
+    <li><a href="https://reddit.nbabite.to/">NBABITE</a></li>
+    <li><a href="https://sportsurge100.com/">SPORTSURGE</a></li>
+    <li><a href="https://hesgoalfree.com/">HESGOAL</a></li>
+    <li><a href="https://soccer-1000.com/">SOCCER STREAMS</a></li>
+    <li><a href="https://www.f1streamsfree.com/">F1 STREAMS</a></li>
+    <li><a href="https://hufoot.com/">Hoofoot</a></li>
+  </ul>
+</body>
+</html>
+  `;
+
+  const blob = new Blob([htmlContent], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "approved_sources.html";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+
 
 
 
