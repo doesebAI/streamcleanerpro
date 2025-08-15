@@ -111,6 +111,26 @@ document.getElementById("cleanDownloadBtn").addEventListener("click", async () =
     document.getElementById("fileStatus").textContent = "❌ Error generating file.";
   }
 });
+async function checkUserAccess() {
+  const user = netlifyIdentity.currentUser();
+  if (!user) return window.location.href = '/login.html';
+
+  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/active_users?email=eq.${user.email}`, {
+    headers: {
+      apikey: process.env.SUPABASE_ANON_KEY
+    }
+  });
+  const data = await res.json();
+
+  if (!data.length || data[0].status !== 'active') {
+    alert('Your subscription is inactive. Please renew to continue.');
+    window.location.href = '/pricing.html';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", checkUserAccess);
+
+
 
 
 
