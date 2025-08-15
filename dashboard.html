@@ -34,6 +34,48 @@
       .stream-thumbnails { flex-direction: column; align-items: center; }
       button { width: 100%; }
     }
+    .approved-sources {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.approved-sources h2 {
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.approved-sources .note {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.approved-sources .source-links a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.approved-sources .source-links a:hover {
+  text-decoration: underline;
+}
+
+.download-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.download-btn:hover {
+  background-color: #218838;
+}
+
   </style>
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="dashboard.js"></script>
@@ -97,6 +139,29 @@
   <button id="cleanDownloadBtn">🔽 Download Clean File</button>
   <p class="file-status" id="fileStatus">Waiting for export...</p>
 </section>
+    <section class="approved-sources">
+  <h2>✅ Approved Stream Sources</h2>
+  <p class="note">
+    To keep your account in good standing, we recommend only using these sources for your streams.
+    You can download them as an HTML file for quick reference.
+  </p>
+
+  <div class="source-links">
+    <a href="https://www.streameast100.com/" target="_blank">StreamEast</a> |
+    <a href="https://totalsportek.football/" target="_blank">TOTALSPORTEK</a> |
+    <a href="https://www.footybite.to/" target="_blank">FOOTYBITE</a> |
+    <a href="https://www.nflbite.to/" target="_blank">NFLBITE</a> |
+    <a href="https://reddit.nbabite.to/" target="_blank">NBABITE</a> |
+    <a href="https://sportsurge100.com/" target="_blank">SPORTSURGE</a> |
+    <a href="https://hesgoalfree.com/" target="_blank">HESGOAL</a> |
+    <a href="https://soccer-1000.com/" target="_blank">SOCCER STREAMS</a> |
+    <a href="https://www.f1streamsfree.com/" target="_blank">F1 STREAMS</a> |
+    <a href="https://hufoot.com/" target="_blank">Hoofoot</a>
+  </div>
+
+  <button id="downloadSourcesBtn" class="download-btn">📥 Download HTML File</button>
+</section>
+
 
 
 
