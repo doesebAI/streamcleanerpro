@@ -1,564 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stream Cleaner Pro</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stream Cleaner Pro — Clean Any Live Sports Stream, Add Your Ads, Download</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #ffffff, #f0f2f5);
+    :root{
+      --bg: #0f172a;           /* slate-900 */
+      --panel: #0b1226;        /* deep navy panel */
+      --muted: #94a3b8;        /* slate-400 */
+      --text: #e2e8f0;         /* slate-200 */
+      --brand: #60a5fa;        /* blue-400 */
+      --brand-2:#38bdf8;       /* sky-400 */
+      --ok:#22c55e;            /* green-500 */
+      --warn:#f59e0b;          /* amber-500 */
+      --error:#ef4444;         /* red-500 */
+      --ring: 0 0 0 3px rgba(96,165,250,0.25);
     }
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(56,189,248,.15), transparent 60%),
+                  radial-gradient(1000px 500px at 80% 0%, rgba(96,165,250,.18), transparent 60%),
+                  var(--bg);
+      color:var(--text);
     }
-    nav a {
-      text-decoration: none;
-      color: #1f2937;
-      margin-left: 1.5rem;
-      font-weight: 500;
+    a{color:var(--brand)}
+    .wrap{max-width:1120px; margin:0 auto; padding:24px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 24px;
     }
-    section {
-      height: 100vh;
-      padding: 3rem 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border-top: 1px solid #e0e0e0;
+    .brand{display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px}
+    .brand i{color:var(--brand)}
+    nav a{color:var(--muted); text-decoration:none; margin:0 12px; font-weight:600}
+    nav a:hover{color:var(--text)}
+    .cta{background:linear-gradient(135deg,var(--brand),var(--brand-2)); border:none; padding:10px 16px; color:white; border-radius:10px; font-weight:700; cursor:pointer}
+    .cta:hover{filter:brightness(1.08)}
+    .hero{
+      display:grid; grid-template-columns: 1.2fr 1fr; gap:26px; align-items:stretch; margin-top:4px;
     }
-     .hero-section {
-    position: relative;
-    background: linear-gradient(to bottom, #f1f5f9, #e2e8f0);
-    color: #0f172a;
-    padding: 6rem 2rem;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .hero-content h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-  }
-
-  .hero-content p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    color: #475569;
-  }
-
-  .hero-content button {
-    background-color: #3b82f6;
-    color: white;
-    padding: 0.9rem 2rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1.1rem;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-    transition: background 0.3s;
-  }
-
-  .hero-content button:hover {
-    background-color: #2563eb;
-  }
-
-  .hero-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 200%;
-    height: 200%;
-    transform: rotate(5deg);
-    opacity: 0.06;
-    z-index: 1;
-  }
-
-  .background-deco {
-    position: absolute;
-    top: -50px;
-    left: -50px;
-    width: 140%;
-    height: 100%;
-    background-image:
-      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(0,0,0,0.02) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.02) 75%),
-      linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.02) 75%);
-    background-size: 40px 40px;
-    z-index: 1;
-    pointer-events: none;
-  }
-    .card-grid {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
+    .hero h1{font-size:44px; line-height:1.05; margin:4px 0 8px}
+    .hero p.lead{color:var(--muted); font-size:18px; margin:0 0 18px}
+    .tool{
+      background:linear-gradient(180deg, rgba(15,23,42,.7), rgba(11,18,38,.9));
+      border:1px solid rgba(148,163,184,.15);
+      border-radius:18px; padding:18px; position:relative; overflow:hidden;
+      box-shadow: 0 10px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      width: 250px;
-      text-align: center;
+    .tool::after{
+      content:""; position:absolute; inset:-2px;
+      background:
+        linear-gradient(120deg, transparent 0 35%, rgba(96,165,250,.09) 45%, transparent 55% 100%),
+        repeating-linear-gradient(90deg, rgba(56,189,248,.05), rgba(56,189,248,.05) 1px, transparent 1px, transparent 24px);
+      pointer-events:none; mask: linear-gradient(#000,rgba(0,0,0,.2));
     }
-    .card i {
-      font-size: 2rem;
-      color: #3b82f6;
-      margin-bottom: 0.5rem;
+    .step{margin-bottom:14px}
+    label{display:block; font-size:13px; color:var(--muted); margin:6px 0}
+    input, select, textarea{
+      width:100%; padding:12px 14px; background:#0a1329; color:var(--text);
+      border:1px solid rgba(148,163,184,.2); border-radius:12px; outline:none;
     }
-     .pricing-section {
-    background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
-    padding: 5rem 2rem;
-    text-align: center;
-    color: #0f172a;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .pricing-section h2 {
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .pricing-card {
-    background: #ffffff;
-    border-radius: 1rem;
-    padding: 3rem 2rem;
-    max-width: 500px;
-    margin: auto;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-    border: 2px solid #3b82f6;
-  }
-
-  .pricing-card h3 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: #1e293b;
-  }
-
-  .pricing-card .price {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #2563eb;
-    margin-bottom: 2rem;
-  }
-
-  .features {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 2rem;
-    text-align: left;
-    max-width: 300px;
-    margin-inline: auto;
-    color: #334155;
-  }
-
-  .features li {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-  }
-
-  .pricing-card button {
-    background-color: #3b82f6;
-    color: white;
-    padding: 0.8rem 1.8rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1.05rem;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-    transition: background 0.3s;
-  }
-
-  .pricing-card button:hover {
-    background-color: #2563eb;
-  }
-    .affiliate-section {
-    background: #ffffff;
-    padding: 4rem 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-    margin: 4rem auto;
-    max-width: 700px;
-    text-align: center;
-  }
-
-  .affiliate-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.2rem;
-  }
-
-  .affiliate-icon {
-    background: #22c55e;
-    color: #ffffff;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-
-  .affiliate-section h2 {
-    font-size: 1.75rem;
-    color: #0f172a;
-  }
-
-  .affiliate-section p {
-    font-size: 1rem;
-    color: #334155;
-    line-height: 1.6;
-  }
-
-  .affiliate-form {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 1rem;
-  }
-
-  .affiliate-form input {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.5rem;
-    width: 250px;
-  }
-
-  .affiliate-form button {
-    background-color: #3b82f6;
-    color: #fff;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  .affiliate-form button:hover {
-    background-color: #2563eb;
-  }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      color: #6b7280;
+    input:focus, select:focus, textarea:focus{box-shadow:var(--ring); border-color:rgba(96,165,250,.5)}
+    .inline{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .tool-actions{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px}
+    .muted{color:var(--muted)}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0a1329; border:1px solid rgba(148,163,184,.18); font-size:12px}
+    .switch{display:flex; align-items:center; gap:10px}
+    .switch input{width:auto}
+    .pill{padding:6px 10px; border-radius:999px; border:1px dashed rgba(148,163,184,.3); color:var(--muted); font-size:12px}
+    .right-card{
+      background:linear-gradient(180deg, rgba(11,18,38,.85), rgba(10,19,41,.95));
+      border:1px solid rgba(148,163,184,.15);
+      border-radius:18px; padding:18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
-
-    /* Add this to your style block */
-    .dashboard-btn {
-  background-color: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.6rem 1.4rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
-}
-.dashboard-btn:hover {
-  background-color: #1d4ed8;
-}
-@media (max-width: 600px) {
-  .dashboard-btn {
-    width: 100%;
-    margin: 0.5rem 0 0 0;
-  }
-}
-  /* Responsive Styles */
-  @media (max-width: 900px) {
-    .card-grid {
-      flex-direction: column;
-      align-items: center;
+    .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+    .mini{
+      background:#0a1329; border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:14px;
     }
-    .card {
-      width: 90%;
-      max-width: 400px;
+    .mini h4{margin:0 0 6px; font-size:14px}
+    .mini p{margin:0; color:var(--muted); font-size:13px}
+    .section{margin-top:40px}
+    .pricing{
+      background:linear-gradient(180deg, rgba(10,19,41,.9), rgba(11,18,38,.95));
+      border:1px solid rgba(148,163,184,.18);
+      padding:18px; border-radius:18px;
     }
-    .pricing-card {
-      max-width: 95vw;
-      padding: 2rem 1rem;
+    .price {font-size:40px; font-weight:800}
+    .list{display:grid; gap:8px; margin:12px 0}
+    .list .row{display:flex; gap:10px; align-items:flex-start}
+    .row i{color:var(--ok); margin-top:3px}
+    .roi-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    .card{background:#0a1329; border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:14px}
+    footer{margin:40px auto; color:var(--muted); text-align:center}
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr}
+      nav{display:none}
     }
-    .affiliate-section {
-      max-width: 98vw;
-      padding: 2rem 1rem;
-    }
-  }
-
-  @media (max-width: 600px) {
-    nav {
-      flex-direction: column;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-    }
-    section {
-      height: auto;
-      padding: 2rem 0.5rem;
-    }
-    .hero-section {
-      padding: 3rem 0.5rem;
-    }
-    .hero-content h1 {
-      font-size: 2rem;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .hero-content p {
-      font-size: 1rem;
-    }
-    .card {
-      padding: 1.2rem;
-      font-size: 0.98rem;
-    }
-    .pricing-section h2 {
-      font-size: 1.5rem;
-    }
-    .pricing-card h3 {
-      font-size: 1.2rem;
-    }
-    .pricing-card .price {
-      font-size: 1.3rem;
-    }
-    .features {
-      max-width: 95vw;
-    }
-    .affiliate-section h2 {
-      font-size: 1.2rem;
-    }
-    .affiliate-form input {
-      width: 100%;
-      min-width: 0;
-    }
-    .affiliate-form {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-  }
-  .popup-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.8);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 9999;
-}
-.popup-box {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  max-width: 400px;
-  text-align: center;
-}
-.popup-box h2 { margin-bottom: 1rem; }
-.popup-box input {
-  width: 100%;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-}
-.popup-box button {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  margin-top: 0.5rem;
-  cursor: pointer;
-}
   </style>
 </head>
-
 <body>
-<div class="popup-overlay" id="popup" style="display:none;">
-  <div class="popup-box">
-    <h2>Join to Access Stream Cleaner Pro</h2>
-    <p>Join our WhatsApp channel or enter your email below:</p>
-    <a href="https://whatsapp.com/channel/0029Vb6MbRd8KMqlrOTpt03f" target="_blank" id="whatsappJoin">
-      <button>Join WhatsApp Channel</button>
-    </a>
-    <input type="email" id="leadEmail" placeholder="Enter your email" required>
-    <button id="submitEmail">Submit Email</button>
+  <div class="wrap">
+    <header>
+      <div class="brand"><i class="fa-solid fa-bolt"></i> Stream Cleaner Pro</div>
+      <nav>
+        <a href="#how">How it Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#roi">ROI & Profit</a>
+        <a href="#faq">FAQ</a>
+        <a href="/dashboard.html" class="cta">Dashboard</a>
+      </nav>
+    </header>
+
+    <!-- HERO: one-time email-gated mini-tool -->
+    <section class="hero">
+      <div>
+        <h1>Clean Any <span style="color:var(--brand)">Live Sports</span> Stream & Replace Ads</h1>
+        <p class="lead">Pick a stream → strip popups & overlays → insert your ads → download ready-to-host HTML. One free use per email.</p>
+
+        <div class="tool" id="miniTool">
+          <!-- Step 0: email gate -->
+          <div class="step">
+            <label for="email">Enter a valid email (one use per email)</label>
+            <div class="inline">
+              <input id="email" type="email" placeholder="you@example.com" required />
+              <button id="checkBtn" class="cta" type="button"><i class="fa-regular fa-circle-check"></i> Unlock Tool</button>
+            </div>
+            <div id="emailHelp" class="muted" style="margin-top:8px">We’ll verify you haven’t already claimed your one-time use.</div>
+          </div>
+
+          <hr style="border-color:rgba(148,163,184,.15); border-width:0 0 1px; margin:14px 0" />
+
+          <!-- Step 1 -->
+          <div class="step">
+            <div class="inline">
+              <div>
+                <label for="sport">Sport</label>
+                <select id="sport">
+                  <option value="football">Football (Soccer)</option>
+                  <option value="basketball">Basketball</option>
+                  <option value="american_football">American Football</option>
+                  <option value="mma">MMA</option>
+                  <option value="tennis">Tennis</option>
+                  <option value="motorsport">Motorsport</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="streamUrl">Stream iframe URL</label>
+                <input id="streamUrl" type="url" placeholder="https://example.com/embed/stream" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step">
+            <label for="adCode">Your ad JavaScript / tags (optional for demo)</label>
+            <textarea id="adCode" rows="4" placeholder="Paste your ad network tag or custom JS here..."></textarea>
+            <div class="tool-actions">
+              <label class="switch">
+                <input id="totalsportekMode" type="checkbox" />
+                <span>Include approved link block (TotalSportek + mirrors)</span>
+              </label>
+              <span class="pill">Sandboxed • Lightweight • Clean</span>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="tool-actions">
+            <button id="cleanBtn" class="cta" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Clean & Download</button>
+            <span id="status" class="muted"></span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <span class="badge"><i class="fa-solid fa-shield-halved"></i> JS sandbox, popups removed</span>
+          <span class="badge"><i class="fa-solid fa-gauge"></i> Lightweight embed output</span>
+          <span class="badge"><i class="fa-solid fa-bullhorn"></i> Bring-your-own ad tags</span>
+        </div>
+      </div>
+
+      <aside class="right-card">
+        <h3 style="margin:0 0 8px">How it Works</h3>
+        <div class="grid-3">
+          <div class="mini"><h4>1) Select</h4><p>Pick a live stream (any sport) or paste an iframe URL.</p></div>
+          <div class="mini"><h4>2) Clean</h4><p>We strip popups, overlays, and shady scripts in a sandbox.</p></div>
+          <div class="mini"><h4>3) Monetize</h4><p>Inject your own ads. Export a clean, host-anywhere HTML.</p></div>
+        </div>
+        <div class="pricing section" id="pricing">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+            <div><div class="muted">Monthly</div><div class="price">$25</div></div>
+            <a href="https://gumroad.com" target="_blank" class="cta">Subscribe</a>
+          </div>
+          <div class="list">
+            <div class="row"><i class="fa-solid fa-check"></i><div>Unlimited cleans (paid plan)</div></div>
+            <div class="row"><i class="fa-solid fa-check"></i><div>Ad tag injection & sandbox</div></div>
+            <div class="row"><i class="fa-solid fa-check"></i><div>Downloadable HTML, host anywhere</div></div>
+            <div class="row"><i class="fa-solid fa-check"></i><div>Approved links block (optional)</div></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ROI & lead nurturing -->
+    <section class="section" id="roi">
+      <h2>Profit & ROI Calculator</h2>
+      <p class="muted">Estimate how quickly you cover $25/mo and scale. Adjust CTR / CPM to match your ad network.</p>
+
+      <div class="roi-grid">
+        <div class="card">
+          <h3 style="margin-top:0">Assumptions</h3>
+          <div class="inline">
+            <div>
+              <label>Monthly visits</label>
+              <input id="visits" type="number" min="0" value="10000" />
+            </div>
+            <div>
+              <label>Pageviews / visit</label>
+              <input id="ppv" type="number" min="1" value="1.6" step="0.1" />
+            </div>
+          </div>
+          <div class="inline" style="margin-top:10px">
+            <div>
+              <label>Display CPM ($)</label>
+              <input id="cpm" type="number" min="0" value="2.5" step="0.1" />
+            </div>
+            <div>
+              <label>Click-ads CTR (%)</label>
+              <input id="ctr" type="number" min="0" value="0.7" step="0.1" />
+            </div>
+          </div>
+          <div class="inline" style="margin-top:10px">
+            <div>
+              <label>Avg CPC ($)</label>
+              <input id="cpc" type="number" min="0" value="0.15" step="0.01" />
+            </div>
+            <div>
+              <label>Video preroll eCPM ($)</label>
+              <input id="vecpm" type="number" min="0" value="6.0" step="0.1" />
+            </div>
+          </div>
+          <button id="calcBtn" class="cta" style="margin-top:12px" type="button">Recalculate</button>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Projected Revenue</h3>
+          <div id="revDisplay" class="muted">Enter numbers and click Recalculate.</div>
+          <div style="margin-top:12px">
+            <span class="badge"><i class="fa-solid fa-bullseye"></i> Break-even visitors: <span id="beVisitors">—</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section grid-3">
+        <div class="mini">
+          <h4>Why this is profitable</h4>
+          <p>Clean players keep users longer → more pageviews → higher ad yield. You control the ad stack, not shady overlays.</p>
+        </div>
+        <div class="mini">
+          <h4>Placement tips</h4>
+          <p>One 728×90 above player, one 300×250 below, and a light preroll. Balance UX & RPM.</p>
+        </div>
+        <div class="mini">
+          <h4>Traffic ideas</h4>
+          <p>Match threads, Discords, Twitter/X trends, Telegram channels, SEO for “where to watch”.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <h2>FAQ</h2>
+      <div class="grid-3">
+        <div class="mini">
+          <h4>Can I use any live sport?</h4>
+          <p>Yes—football, basketball, NFL, MMA, tennis, motorsport, and more. Paste any embed URL.</p>
+        </div>
+        <div class="mini">
+          <h4>Is the output lightweight?</h4>
+          <p>Yes. We sandbox the iframe and ship a minimal HTML wrapper that you can host anywhere.</p>
+        </div>
+        <div class="mini">
+          <h4>One-time use on this page?</h4>
+          <p>Correct. Enter an email once to try it here. Paid plan unlocks unlimited cleans inside the dashboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="y"></span> Stream Cleaner Pro — Clean streams. Replace ads. Monetize ethically.<br/>
+      <span class="muted">One-time use tool powered by Netlify Functions.</span>
+    </footer>
   </div>
-</div>
 
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-  <nav>
-    <div style="font-weight: bold;">Stream Cleaner Pro</div>
-    <div style="display: flex; align-items: center; gap: 1.5rem;">
-      <a href="#hero">Home</a>
-      <a href="#solution">Solution</a>
-      <a href="#pricing">Pricing</a>
-      
-      <!-- Centered Dashboard Button -->
-       
-      <a href="login.html" target="_blank">
-        <button class="dashboard-btn" style="margin: 0 1.5rem;">Access Dashboard</button>
-      </a>
-      
-    </div>
-  </nav>
+    // ROI Calculator
+    function calc(){
+      const visits = +document.getElementById('visits').value || 0;
+      const ppv = +document.getElementById('ppv').value || 1;
+      const cpm = +document.getElementById('cpm').value || 0;
+      const ctr = (+document.getElementById('ctr').value || 0) / 100;
+      const cpc = +document.getElementById('cpc').value || 0;
+      const vecpm = +document.getElementById('vecpm').value || 0;
 
-<section class="hero-section">
-  <div class="hero-content">
-    <h1><i class="fas fa-magic"></i> Stream Cleaner Pro</h1>
-    <p>Sanitize & monetize live streams effortlessly. One click. Zero risk.</p>
-    <a href="https://transfundersol.gumroad.com/l/yctnse?wanted=true" target="_blank">
-      <button>Get Started</button>
-    </a>
-    
-  </div>
+      const pageviews = visits * ppv;
+      const displayRev = (pageviews / 1000) * cpm;
+      const clicks = pageviews * ctr;
+      const clickRev = clicks * cpc;
+      const prerollRev = (pageviews / 1000) * vecpm;
 
-  <!-- Futuristic SVG Background -->
-  <svg class="hero-background" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#cbd5e1" stroke-width="0.5" />
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#grid)">
-      <animate attributeName="x" from="0" to="10" dur="10s" repeatCount="indefinite" />
-    </rect>
-  </svg>
-</section>
+      const total = displayRev + clickRev + prerollRev;
+      const txt = `
+        <div>Display Ads (CPM): <strong>$${displayRev.toFixed(2)}</strong></div>
+        <div>Click Ads (CTR×CPC): <strong>$${clickRev.toFixed(2)}</strong></div>
+        <div>Video Preroll (eCPM): <strong>$${prerollRev.toFixed(2)}</strong></div>
+        <hr style="border-color:rgba(148,163,184,.15)"/>
+        <div>Total Monthly: <strong>$${total.toFixed(2)}</strong></div>
+        <div class="muted">Plan cost: $25 → Net: <strong>$${(total - 25).toFixed(2)}</strong></div>
+      `;
+      document.getElementById('revDisplay').innerHTML = txt;
 
-  <section id="solution">
-  <h2 style="border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem;">How It Works</h2>
-  <div class="card-grid">
-    <div class="card">
-      <i class="fas fa-tv"></i>
-      <h3>Select Stream</h3>
-      <p>Choose a live stream iframe from our verified list.</p>
-    </div>
-    <div class="card">
-      <i class="fas fa-broom"></i>
-      <h3>Clean & Inject Ads</h3>
-      <p>We remove popups and inject your ad codes.</p>
-    </div>
-    <div class="card">
-      <i class="fas fa-download"></i>
-      <h3>Download HTML</h3>
-      <p>Receive a fully packaged HTML file to host yourself.</p>
-    </div>
-    <div class="card">
-      <i class="fas fa-rocket"></i>
-      <h3>Monetize Instantly</h3>
-      <p>Embed and monetize your cleaned stream on your terms.</p>
-    </div>
-  </div>
-</section>
+      // Break-even visitors (rough): solve visits where total = 25
+      // total = (visits*ppv/1000)*cpm + (visits*ppv*ctr)*cpc + (visits*ppv/1000)*vecpm
+      const a = (ppv/1000)*(cpm + vecpm) + (ppv*ctr*cpc);
+      const be = a > 0 ? Math.ceil(25 / a) : 0;
+      document.getElementById('beVisitors').textContent = be ? be.toLocaleString() : '—';
+    }
+    calc();
+    document.getElementById('calcBtn').addEventListener('click', calc);
 
-  
-<section id="pricing" class="pricing-section">
-  <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
-  <div class="pricing-card">
-    <h3>All-Inclusive Plan</h3>
-    <p class="price">$35/month</p>
-    <ul class="features">
-      <li>✔ Unlimited iframe cleaning</li>
-      <li>✔ Inject your ad network code</li>
-      <li>✔ Download ready-to-host HTML files</li>
-      <li>✔ Access verified stream list</li>
-      <li>✔ One-click clean + export</li>
-      
-    </ul>
-    <a href="https://transfundersol.gumroad.com/l/yctnse?wanted=true" target="_blank">
-      <button>Subscribe Now</button>
-    </a>
-  </div>
-</section>
+    // One-time email gate + clean & download
+    let emailApproved = false;
 
+    document.getElementById('checkBtn').addEventListener('click', async () => {
+      const email = (document.getElementById('email').value || '').trim();
+      const status = document.getElementById('status');
+      if(!email || !/^\S+@\S+\.\S+$/.test(email)){
+        status.textContent = 'Please enter a valid email.';
+        status.style.color = 'var(--warn)';
+        return;
+      }
+      status.textContent = 'Checking…';
+      status.style.color = 'var(--muted)';
+      try{
+        const res = await fetch('/.netlify/functions/check-email', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if(data.allowed){
+          emailApproved = true;
+          status.textContent = 'Email verified. You can use the tool now.';
+          status.style.color = 'var(--ok)';
+        }else{
+          status.textContent = 'This email already used the one-time tool. Please subscribe for unlimited use.';
+          status.style.color = 'var(--error)';
+        }
+      }catch(e){
+        status.textContent = 'Server error. Please try again.';
+        status.style.color = 'var(--error)';
+      }
+    });
 
+    document.getElementById('cleanBtn').addEventListener('click', async () => {
+      const status = document.getElementById('status');
+      if(!emailApproved){
+        status.textContent = 'Please unlock the tool with your email first.';
+        status.style.color = 'var(--warn)';
+        return;
+      }
+      const iframeUrl = (document.getElementById('streamUrl').value || '').trim();
+      if(!iframeUrl){
+        status.textContent = 'Enter a valid stream iframe URL.';
+        status.style.color = 'var(--warn)';
+        return;
+      }
+      status.textContent = 'Cleaning stream and preparing download…';
+      status.style.color = 'var(--muted)';
 
+      const adScript = document.getElementById('adCode').value || '';
+      const sport = document.getElementById('sport').value;
+      const compliance = document.getElementById('totalsportekMode').checked;
 
-  <footer>
-    &copy; 2025 Stream Cleaner Pro – Built for Creators by Creators. Contact us transfundersolutions@gmail.com
-  </footer>
+      try{
+        const res = await fetch('/.netlify/functions/clean-stream-lite', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ iframeUrl, adScript, sport, compliance })
+        });
+        if(!res.ok){
+          throw new Error('Function failed');
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `clean_stream_${sport}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const supabase = createClient(
-  'https://rfuilglpyamrjbtkacqw.supabase.co', // replace
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I' // replace
-);
-
-async function checkLeadStatus(email) {
-  const { data } = await supabase
-    .from('leads')
-    .select('email')
-    .eq('email', email.toLowerCase());
-  return data && data.length > 0;
-}
-
-(async function showPopupIfNew() {
-  let email = localStorage.getItem('leadEmail');
-  if (email && await checkLeadStatus(email)) {
-    return;
-  }
-  document.getElementById('popup').style.display = 'flex';
-})();
-
-document.getElementById('submitEmail').addEventListener('click', async () => {
-  const email = document.getElementById('leadEmail').value.trim();
-  if (!email) {
-    alert('Please enter a valid email.');
-    return;
-  }
-  const { error } = await supabase.from('leads').insert([{ email }]);
-  if (error) {
-    alert('Error saving email or already exists.');
-    return;
-  }
-  localStorage.setItem('leadEmail', email);
-  document.getElementById('popup').style.display = 'none';
-});
-
-document.getElementById('whatsappJoin').addEventListener('click', async () => {
-  const email = localStorage.getItem('leadEmail');
-  if (email) {
-    await supabase
-      .from('leads')
-      .update({ joined_whatsapp: true })
-      .eq('email', email);
-  }
-  document.getElementById('popup').style.display = 'none';
-});
-</script>
-
-
-  
+        status.textContent = '✅ Downloaded cleaned HTML.';
+        status.style.color = 'var(--ok)';
+      }catch(e){
+        status.textContent = 'Cleaning failed. Please try again.';
+        status.style.color = 'var(--error)';
+      }
+    });
+  </script>
 </body>
 </html>
