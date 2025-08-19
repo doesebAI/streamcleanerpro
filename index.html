@@ -256,6 +256,21 @@
           </div>
         </div>
       </div>
+      <!-- Live stream suggestions -->
+<div class="section">
+  <h3>Sample Live Stream Suggestions</h3>
+  <p class="muted">Quickly pick a demo stream link (from Scorebat/IPTV feeds) if you don’t have one handy.</p>
+  <select id="suggestions"></select>
+  <button class="cta" type="button" id="useSuggestion">Use this stream</button>
+</div>
+
+<!-- Conversion strip -->
+<div class="section" style="text-align:center; background:#0a1329; border-radius:14px; padding:14px; margin-top:20px; border:1px solid rgba(148,163,184,.18)">
+  <span class="muted">At $25/mo, you break even at</span>
+  <strong style="color:var(--brand); margin-left:6px" id="beStrip">— visitors</strong>
+  <span class="muted">per month.</span>
+</div>
+
 
       <div class="section grid-3">
         <div class="mini">
@@ -291,6 +306,24 @@
         </div>
       </div>
     </section>
+    <section id="pricing" class="pricing-section">
+  <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
+  <div class="pricing-card">
+    <h3>All-Inclusive Plan</h3>
+    <p class="price">$35/month</p>
+    <ul class="features">
+      <li>✔ Unlimited iframe cleaning</li>
+      <li>✔ Inject your ad network code</li>
+      <li>✔ Download ready-to-host HTML files</li>
+      <li>✔ Access verified stream list</li>
+      <li>✔ One-click clean + export</li>
+      
+    </ul>
+    <a href="https://ko-fi.com/streamcleanerpro/tiers" target="_blank">
+      <button>Subscribe Now</button>
+    </a>
+  </div>
+</section>
 
     <footer>
       © <span id="y"></span> Stream Cleaner Pro — Clean streams. Replace ads. Monetize ethically.<br/>
@@ -414,6 +447,36 @@
         status.style.color = 'var(--error)';
       }
     });
+    // --- Live stream suggestions ---
+const sampleStreams = [
+  { sport: "football", name: "Man United vs Arsenal", url: "https://example.com/embed/football1" },
+  { sport: "basketball", name: "Lakers vs Celtics", url: "https://example.com/embed/basketball1" },
+  { sport: "american_football", name: "Patriots vs Cowboys", url: "https://example.com/embed/nfl1" },
+  { sport: "mma", name: "UFC Main Card", url: "https://example.com/embed/mma1" },
+  { sport: "tennis", name: "US Open Final", url: "https://example.com/embed/tennis1" }
+];
+const suggestions = document.getElementById("suggestions");
+sampleStreams.forEach(s => {
+  const opt = document.createElement("option");
+  opt.value = s.url;
+  opt.textContent = `${s.sport.toUpperCase()} — ${s.name}`;
+  opt.dataset.sport = s.sport;
+  suggestions.appendChild(opt);
+});
+document.getElementById("useSuggestion").addEventListener("click", () => {
+  const opt = suggestions.options[suggestions.selectedIndex];
+  document.getElementById("streamUrl").value = opt.value;
+  document.getElementById("sport").value = opt.dataset.sport;
+});
+
+// --- Sync ROI break-even strip ---
+function updateStrip() {
+  document.getElementById("beStrip").textContent =
+    document.getElementById("beVisitors").textContent;
+}
+document.getElementById("calcBtn").addEventListener("click", updateStrip);
+updateStrip();
+
   </script>
 </body>
 </html>
