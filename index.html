@@ -332,151 +332,161 @@
   </div>
 
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+  // --- Year footer ---
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-    // ROI Calculator
-    function calc(){
-      const visits = +document.getElementById('visits').value || 0;
-      const ppv = +document.getElementById('ppv').value || 1;
-      const cpm = +document.getElementById('cpm').value || 0;
-      const ctr = (+document.getElementById('ctr').value || 0) / 100;
-      const cpc = +document.getElementById('cpc').value || 0;
-      const vecpm = +document.getElementById('vecpm').value || 0;
+  // --- ROI Calculator ---
+  function calc(){
+    const visits = +document.getElementById('visits').value || 0;
+    const ppv = +document.getElementById('ppv').value || 1;
+    const cpm = +document.getElementById('cpm').value || 0;
+    const ctr = (+document.getElementById('ctr').value || 0) / 100;
+    const cpc = +document.getElementById('cpc').value || 0;
+    const vecpm = +document.getElementById('vecpm').value || 0;
 
-      const pageviews = visits * ppv;
-      const displayRev = (pageviews / 1000) * cpm;
-      const clicks = pageviews * ctr;
-      const clickRev = clicks * cpc;
-      const prerollRev = (pageviews / 1000) * vecpm;
+    const pageviews = visits * ppv;
+    const displayRev = (pageviews / 1000) * cpm;
+    const clicks = pageviews * ctr;
+    const clickRev = clicks * cpc;
+    const prerollRev = (pageviews / 1000) * vecpm;
 
-      const total = displayRev + clickRev + prerollRev;
-      const txt = `
-        <div>Display Ads (CPM): <strong>$${displayRev.toFixed(2)}</strong></div>
-        <div>Click Ads (CTR×CPC): <strong>$${clickRev.toFixed(2)}</strong></div>
-        <div>Video Preroll (eCPM): <strong>$${prerollRev.toFixed(2)}</strong></div>
-        <hr style="border-color:rgba(148,163,184,.15)"/>
-        <div>Total Monthly: <strong>$${total.toFixed(2)}</strong></div>
-        <div class="muted">Plan cost: $25 → Net: <strong>$${(total - 25).toFixed(2)}</strong></div>
-      `;
-      document.getElementById('revDisplay').innerHTML = txt;
+    const total = displayRev + clickRev + prerollRev;
+    const txt = `
+      <div>Display Ads (CPM): <strong>$${displayRev.toFixed(2)}</strong></div>
+      <div>Click Ads (CTR×CPC): <strong>$${clickRev.toFixed(2)}</strong></div>
+      <div>Video Preroll (eCPM): <strong>$${prerollRev.toFixed(2)}</strong></div>
+      <hr style="border-color:rgba(148,163,184,.15)"/>
+      <div>Total Monthly: <strong>$${total.toFixed(2)}</strong></div>
+      <div class="muted">Plan cost: $25 → Net: <strong>$${(total - 25).toFixed(2)}</strong></div>
+    `;
+    document.getElementById('revDisplay').innerHTML = txt;
 
-      // Break-even visitors (rough): solve visits where total = 25
-      // total = (visits*ppv/1000)*cpm + (visits*ppv*ctr)*cpc + (visits*ppv/1000)*vecpm
-      const a = (ppv/1000)*(cpm + vecpm) + (ppv*ctr*cpc);
-      const be = a > 0 ? Math.ceil(25 / a) : 0;
-      document.getElementById('beVisitors').textContent = be ? be.toLocaleString() : '—';
-    }
+    // Break-even visitors (rough): solve visits where total = 25
+    const a = (ppv/1000)*(cpm + vecpm) + (ppv*ctr*cpc);
+    const be = a > 0 ? Math.ceil(25 / a) : 0;
+    document.getElementById('beVisitors').textContent = be ? be.toLocaleString() : '—';
+  }
+  calc();
+  document.getElementById('calcBtn').addEventListener('click', () => {
     calc();
-    document.getElementById('calcBtn').addEventListener('click', calc);
+    document.getElementById("beStrip").textContent =
+      document.getElementById("beVisitors").textContent;
+  });
 
-    // One-time email gate + clean & download
-    let emailApproved = false;
-
-    document.getElementById('checkBtn').addEventListener('click', async () => {
-      const email = (document.getElementById('email').value || '').trim();
-      const status = document.getElementById('status');
-      if(!email || !/^\S+@\S+\.\S+$/.test(email)){
-        status.textContent = 'Please enter a valid email.';
-        status.style.color = 'var(--warn)';
-        return;
-      }
-      status.textContent = 'Checking…';
-      status.style.color = 'var(--muted)';
-      try{
-        const res = await fetch('/.netlify/functions/check-email', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ email })
-        });
-        const data = await res.json();
-        if(data.allowed){
-          emailApproved = true;
-          status.textContent = 'Email verified. You can use the tool now.';
-          status.style.color = 'var(--ok)';
-        }else{
-          status.textContent = 'This email already used the one-time tool. Please subscribe for unlimited use.';
-          status.style.color = 'var(--error)';
-        }
-      }catch(e){
-        status.textContent = 'Server error. Please try again.';
-        status.style.color = 'var(--error)';
-      }
-    });
-
-    document.getElementById('cleanBtn').addEventListener('click', async () => {
-      const status = document.getElementById('status');
-      if(!emailApproved){
-        status.textContent = 'Please unlock the tool with your email first.';
-        status.style.color = 'var(--warn)';
-        return;
-      }
-      const iframeUrl = (document.getElementById('streamUrl').value || '').trim();
-      if(!iframeUrl){
-        status.textContent = 'Enter a valid stream iframe URL.';
-        status.style.color = 'var(--warn)';
-        return;
-      }
-      status.textContent = 'Cleaning stream and preparing download…';
-      status.style.color = 'var(--muted)';
-
-      const adScript = document.getElementById('adCode').value || '';
-      const sport = document.getElementById('sport').value;
-      const compliance = document.getElementById('totalsportekMode').checked;
-
-      try{
-        const res = await fetch('/.netlify/functions/clean-stream-lite', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ iframeUrl, adScript, sport, compliance })
-        });
-        if(!res.ok){
-          throw new Error('Function failed');
-        }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `clean_stream_${sport}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        status.textContent = '✅ Downloaded cleaned HTML.';
+  // --- One-time email gate ---
+  let emailApproved = false;
+  document.getElementById('checkBtn').addEventListener('click', async () => {
+    const email = (document.getElementById('email').value || '').trim();
+    const status = document.getElementById('status');
+    if(!email || !/^\S+@\S+\.\S+$/.test(email)){
+      status.textContent = 'Please enter a valid email.';
+      status.style.color = 'var(--warn)';
+      return;
+    }
+    status.textContent = 'Checking…';
+    status.style.color = 'var(--muted)';
+    try{
+      const res = await fetch('/.netlify/functions/check-email', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if(data.allowed){
+        emailApproved = true;
+        status.textContent = 'Email verified. You can use the tool now.';
         status.style.color = 'var(--ok)';
-      }catch(e){
-        status.textContent = 'Cleaning failed. Please try again.';
+      }else{
+        status.textContent = 'This email already used the one-time tool. Please subscribe for unlimited use.';
         status.style.color = 'var(--error)';
       }
+    }catch(e){
+      status.textContent = 'Server error. Please try again.';
+      status.style.color = 'var(--error)';
+    }
+  });
+
+  // --- Live stream loader (new flow) ---
+  let LP_SELECTED = null;
+
+  async function loadLandingStreams(sport='all') {
+    const grid = document.getElementById('lp-streams');
+    grid.innerHTML = 'Loading...';
+    try {
+      const res = await fetch(`/.netlify/functions/get-streams?sport=${sport}&limit=15`);
+      const items = await res.json();
+      grid.innerHTML = '';
+      if (!items.length) {
+        grid.innerHTML = '<p>No streams found for this sport right now.</p>';
+        return;
+      }
+      items.forEach((it, idx) => {
+        const card = document.createElement('div');
+        card.className = 'stream-card';
+        card.innerHTML = `
+          <img src="${it.thumbnail}" alt="${it.title}" />
+          <div class="meta">
+            <div class="title">${it.title}</div>
+            <div class="tags">${it.sport.toUpperCase()} • ${it.source}</div>
+            <button class="select-btn" data-i="${idx}">Select</button>
+          </div>`;
+        grid.appendChild(card);
+      });
+      grid.querySelectorAll('.select-btn').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          LP_SELECTED = items[parseInt(btn.dataset.i)];
+          document.getElementById('lp-status').textContent = `Selected: ${LP_SELECTED.title}`;
+        });
+      });
+    } catch {
+      grid.innerHTML = '<p>Error loading streams.</p>';
+    }
+  }
+
+  document.getElementById('lp-sport').addEventListener('change', e => {
+    loadLandingStreams(e.target.value);
+  });
+
+  document.getElementById('lp-download').addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const ad = document.getElementById('lp-ad').value || '';
+    const status = document.getElementById('lp-status');
+
+    if (!emailApproved){
+      status.textContent = 'Please unlock the tool with your email first.';
+      status.style.color = 'var(--warn)';
+      return;
+    }
+    if (!LP_SELECTED) { status.textContent = 'Select a stream first.'; return; }
+
+    status.textContent = 'Processing...';
+
+    const res = await fetch('/.netlify/functions/clean-stream', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        iframeUrl: LP_SELECTED.iframe,
+        adScript: ad,
+        matchName: LP_SELECTED.title
+      })
     });
-    // --- Live stream suggestions ---
-const sampleStreams = [
-  { sport: "football", name: "Man United vs Arsenal", url: "https://example.com/embed/football1" },
-  { sport: "basketball", name: "Lakers vs Celtics", url: "https://example.com/embed/basketball1" },
-  { sport: "american_football", name: "Patriots vs Cowboys", url: "https://example.com/embed/nfl1" },
-  { sport: "mma", name: "UFC Main Card", url: "https://example.com/embed/mma1" },
-  { sport: "tennis", name: "US Open Final", url: "https://example.com/embed/tennis1" }
-];
-const suggestions = document.getElementById("suggestions");
-sampleStreams.forEach(s => {
-  const opt = document.createElement("option");
-  opt.value = s.url;
-  opt.textContent = `${s.sport.toUpperCase()} — ${s.name}`;
-  opt.dataset.sport = s.sport;
-  suggestions.appendChild(opt);
-});
-document.getElementById("useSuggestion").addEventListener("click", () => {
-  const opt = suggestions.options[suggestions.selectedIndex];
-  document.getElementById("streamUrl").value = opt.value;
-  document.getElementById("sport").value = opt.dataset.sport;
-});
 
-// --- Sync ROI break-even strip ---
-function updateStrip() {
-  document.getElementById("beStrip").textContent =
-    document.getElementById("beVisitors").textContent;
-}
-document.getElementById("calcBtn").addEventListener("click", updateStrip);
-updateStrip();
+    if (!res.ok) { status.textContent = 'Failed to generate HTML.'; return; }
 
-  </script>
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = LP_SELECTED.title.replace(/\s+/g,'_') + '.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    status.textContent = '✅ Downloaded!';
+  });
+
+  // initial load
+  loadLandingStreams('all');
+</script>
+
 </body>
 </html>
