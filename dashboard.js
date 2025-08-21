@@ -1,172 +1,89 @@
-document.addEventListener("DOMContentLoaded", loadStreams);
+// dashboard.js
 
-let selectedStream = null;
+// --- State ---
+let DB_SELECTED = null;
 
-// Load streams from Scorebat API via Netlify function
-async function loadStreams() {
+// --- Load streams into dashboard ---
+async function loadDashboardStreams(sport = "all") {
+  const grid = document.getElementById("db-streams");
+  grid.innerHTML = "Loading...";
   try {
-    const res = await fetch("/.netlify/functions/get-streams");
-    const streams = await res.json();
-
-    if (!Array.isArray(streams) || streams.length === 0) {
-      console.warn("No streams found from Scorebat API");
-      document.getElementById("matchList").innerHTML = "<p>No live matches available right now.</p>";
+    const res = await fetch(`/.netlify/functions/get-streams?sport=${sport}&limit=25`);
+    const items = await res.json();
+    grid.innerHTML = "";
+    if (!items.length) {
+      grid.innerHTML = "<p>No streams found for this sport right now.</p>";
       return;
     }
-
-    const matchList = document.getElementById("matchList");
-    const streamSelect = document.getElementById("streamSelect");
-    matchList.innerHTML = "";
-    streamSelect.innerHTML = "";
-
-    streams.forEach((stream, idx) => {
-      // Populate dropdown
-      const option = document.createElement("option");
-      option.value = idx;
-      option.textContent = stream.match;
-      streamSelect.appendChild(option);
-
-      // Populate thumbnails
-      const thumb = document.createElement("div");
-      thumb.className = "stream-thumb";
-      thumb.innerHTML = `
-        <img src="${stream.thumbnail}" alt="${stream.match}" style="width:100%; height:100%; border-radius:0.5rem;">
-      `;
-      thumb.onclick = () => {
-        selectedStream = stream;
-        streamSelect.value = idx;
-        highlightSelectedThumb(thumb);
-      };
-      matchList.appendChild(thumb);
+    items.forEach((it, idx) => {
+      const card = document.createElement("div");
+      card.className = "stream-card";
+      card.innerHTML = `
+        <img src="${it.thumbnail}" alt="${it.title}" />
+        <div class="meta">
+          <div class="title">${it.title}</div>
+          <div class="tags">${it.sport.toUpperCase()} • ${it.source}</div>
+          <button class="select-btn" data-i="${idx}">Select</button>
+        </div>`;
+      grid.appendChild(card);
     });
-
-    // Auto-select first stream
-    selectedStream = streams[0];
-    streamSelect.value = 0;
-
-    streamSelect.onchange = () => {
-      selectedStream = streams[streamSelect.value];
-    };
-
-  } catch (err) {
-    console.error("Error loading streams:", err);
-    document.getElementById("matchList").innerHTML = "<p>Error loading streams. Please try again later.</p>";
+    grid.querySelectorAll(".select-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        DB_SELECTED = items[parseInt(btn.dataset.i)];
+        document.getElementById("db-status").textContent =
+          `Selected: ${DB_SELECTED.title}`;
+      });
+    });
+  } catch {
+    grid.innerHTML = "<p>Error loading streams.</p>";
   }
 }
 
-// Highlight selected stream thumbnail
-function highlightSelectedThumb(selectedThumb) {
-  document.querySelectorAll(".stream-thumb").forEach(thumb => {
-    thumb.style.border = "2px solid transparent";
-  });
-  selectedThumb.style.border = "2px solid #3b82f6";
-}
+// --- Download cleaned embed ---
+document.getElementById("db-download").addEventListener("click", async () => {
+  const ad = document.getElementById("db-ad").value || "";
+  const status = document.getElementById("db-status");
 
-// Simulate cleaning process
-function simulateCleaning() {
-  const status = document.getElementById("cleanStatus");
-  status.textContent = "⏳ Cleaning in progress...";
-  setTimeout(() => {
-    status.textContent = "✅ Cleaning complete. Ads removed.";
-  }, 2000);
-}
-
-// Handle export (clean + download)
-document.getElementById("cleanDownloadBtn").addEventListener("click", async () => {
-  if (!selectedStream) {
-    alert("Please select a match first!");
+  if (!DB_SELECTED) {
+    status.textContent = "Select a stream first.";
     return;
   }
 
-  const adCode = document.getElementById("adCode").value;
-  document.getElementById("fileStatus").textContent = "Processing...";
+  status.textContent = "Processing...";
 
-  try {
-    const res = await fetch("/.netlify/functions/clean-stream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        iframeUrl: selectedStream.iframe,
-        adScript: adCode,
-        matchName: selectedStream.match
-      })
-    });
-
-    if (!res.ok) {
-      throw new Error(`Request failed with status ${res.status}`);
-    }
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = selectedStream.match.replace(/\s+/g, '_') + ".html";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    document.getElementById("fileStatus").textContent = "✅ File downloaded.";
-  } catch (err) {
-    console.error("Export error:", err);
-    document.getElementById("fileStatus").textContent = "❌ Error generating file.";
-  }
-});
-async function checkUserAccess() {
-  const user = netlifyIdentity.currentUser();
-  if (!user) return window.location.href = '/login.html';
-
-  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/active_users?email=eq.${user.email}`, {
-    headers: {
-      apikey: process.env.SUPABASE_ANON_KEY
-    }
+  const res = await fetch("/.netlify/functions/clean-stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      iframeUrl: DB_SELECTED.iframe,
+      adScript: ad,
+      matchName: DB_SELECTED.title
+    })
   });
-  const data = await res.json();
 
-  if (!data.length || data[0].status !== 'active') {
-    alert('Your subscription is inactive. Please renew to continue.');
-    window.location.href = '/pricing.html';
+  if (!res.ok) {
+    status.textContent = "Failed to generate HTML.";
+    return;
   }
-}
 
-document.addEventListener("DOMContentLoaded", checkUserAccess);
-document.getElementById("downloadSourcesBtn").addEventListener("click", () => {
-  const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Approved Stream Sources</title>
-</head>
-<body>
-  <h2>✅ Approved Stream Sources</h2>
-  <ul>
-    <li><a href="https://www.streameast100.com/">StreamEast</a></li>
-    <li><a href="https://totalsportek.football/">TOTALSPORTEK</a></li>
-    <li><a href="https://www.footybite.to/">FOOTYBITE</a></li>
-    <li><a href="https://www.nflbite.to/">NFLBITE</a></li>
-    <li><a href="https://reddit.nbabite.to/">NBABITE</a></li>
-    <li><a href="https://sportsurge100.com/">SPORTSURGE</a></li>
-    <li><a href="https://hesgoalfree.com/">HESGOAL</a></li>
-    <li><a href="https://soccer-1000.com/">SOCCER STREAMS</a></li>
-    <li><a href="https://www.f1streamsfree.com/">F1 STREAMS</a></li>
-    <li><a href="https://hufoot.com/">Hoofoot</a></li>
-  </ul>
-</body>
-</html>
-  `;
-
-  const blob = new Blob([htmlContent], { type: "text/html" });
+  const blob = await res.blob();
   const url = URL.createObjectURL(blob);
-  
   const a = document.createElement("a");
   a.href = url;
-  a.download = "approved_sources.html";
+  a.download = DB_SELECTED.title.replace(/\s+/g, "_") + ".html";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  status.textContent = "✅ Downloaded!";
 });
 
+// --- Sport filter ---
+document.getElementById("db-sport").addEventListener("change", (e) => {
+  loadDashboardStreams(e.target.value);
+});
 
-
+// --- Init ---
+loadDashboardStreams("all");
 
 
 
