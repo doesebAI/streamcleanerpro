@@ -106,44 +106,47 @@
   <main class="dashboard-content">
 
     <div class="gamified">
-      <p>🎮 XP: <strong>1200</strong> | Cleaned Streams: <strong>18</strong></p>
+     
       <span class="badge">⭐ PRO MEMBER</span>
     </div>
 
     <!-- Step 1 -->
-    <section id="step1" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-futbol"></i> Step 1: Select Football Match</h2>
-  <p>Select a live football match to clean and export.</p>
+   <section id="step1" class="dashboard-card animate__animated animate__fadeIn">
+  <h2><i class="fas fa-tv"></i> Step 1: Select Live Stream</h2>
+  <p>Choose a live match or event from the list below (all sports supported):</p>
   <select id="streamSelect" class="stream-dropdown">
-    <option>Loading streams...</option>
+    <option>Loading live streams...</option>
   </select>
   <div id="matchList" class="stream-thumbnails"></div>
 </section>
 
 <section id="step2" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-broom"></i> Step 2: Clean Iframe</h2>
-  <p>We’ll remove overlays, popups, and malicious scripts from the selected stream iframe.</p>
-  <button onclick="simulateCleaning()">🧹 Start Cleaning</button>
-  <p id="cleanStatus" class="file-status">Waiting to clean iframe...</p>
+  <h2><i class="fas fa-bullhorn"></i> Step 2: Place Your Ad Code</h2>
+  <p>Paste your banner, overlay, or JavaScript ad snippet below:</p>
+  <textarea id="adCode" class="ad-code-input" placeholder="Paste your ad script here..."></textarea>
 </section>
 
 <section id="step3" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-bullhorn"></i> Step 3: Insert Your Ad Code</h2>
-  <p>Paste your banner/overlay/JavaScript ad snippet below:</p>
-  <textarea id="adCode" class="ad-code-input" placeholder="Paste ad script here..."></textarea>
+  <h2><i class="fas fa-link"></i> Step 3: Add TotalSportek Links (Optional)</h2>
+  <label class="switch">
+    <input id="totalsportekMode" type="checkbox" />
+    <span>Include approved link block (TotalSportek + mirrors)</span>
+  </label>
+  <p class="note">When enabled, your exported HTML will include a styled block with official/recommended links.</p>
 </section>
 
 <section id="step4" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-download"></i> Step 4: Export Clean Embed</h2>
-  <p>Click below to generate your cleaned, ready-to-host HTML file.</p>
-  <button id="cleanDownloadBtn">🔽 Download Clean File</button>
+  <h2><i class="fas fa-download"></i> Step 4: Download Embed File</h2>
+  <p>Click below to generate your ready-to-host HTML file with your ads and (optionally) approved links.</p>
+  <button id="cleanDownloadBtn">📥 Download HTML File</button>
   <p class="file-status" id="fileStatus">Waiting for export...</p>
 </section>
-    <section class="approved-sources">
+
+<section class="approved-sources">
   <h2>✅ Approved Stream Sources</h2>
   <p class="note">
     To keep your account in good standing, we recommend only using these sources for your streams.
-    You can download them as an HTML file for quick reference.
+    You can also download them as a standalone HTML reference file.
   </p>
 
   <div class="source-links">
@@ -159,8 +162,9 @@
     <a href="https://hufoot.com/" target="_blank">Hoofoot</a>
   </div>
 
-  <button id="downloadSourcesBtn" class="download-btn">📥 Download HTML File</button>
+  <button id="downloadSourcesBtn" class="download-btn">📥 Download Sources HTML</button>
 </section>
+
 
 
 
