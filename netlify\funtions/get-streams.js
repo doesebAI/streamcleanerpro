@@ -1,55 +1,60 @@
+// netlify/functions/get-streams.js
 import fetch from "node-fetch";
 
-const API_SPORTS_KEY = "15baf5cd3f86610045f686247288fbe2";
-const SPORTSDB_KEY = "3"; // demo key
-
 export async function handler(event) {
+  const { sport = "all", limit = 15 } = event.queryStringParameters;
+
+  const apiSportsKey = "15baf5cd3f86610045f686247288fbe2"; // Your API-Sports key
+  const sportsDBBase = "https://www.thesportsdb.com/api/v1/json/3";
+
   try {
-    const { sport = "football" } = event.queryStringParameters;
-
-    // 1) Fetch fixtures from API-Sports
-    const res = await fetch(`https://v3.football.api-sports.io/fixtures?next=10`, {
-      headers: { "x-apisports-key": API_SPORTS_KEY }
+    // 1. Fetch upcoming matches from API-Sports
+    const fixturesRes = await fetch(`https://v3.football.api-sports.io/fixtures?live=all`, {
+      headers: { "x-apisports-key": apiSportsKey }
     });
-    const { response } = await res.json();
+    const fixturesData = await fixturesRes.json();
 
-    // 2) Merge with SportsDB broadcaster info
-    const matches = [];
-    for (let fx of response) {
+    let streams = [];
+
+    for (let fx of fixturesData.response.slice(0, limit)) {
       const matchId = fx.fixture.id;
-      const title = `${fx.teams.home.name} vs ${fx.teams.away.name}`;
-      const start = fx.fixture.date;
-      const thumbnail = fx.teams.home.logo;
+      const home = fx.teams.home.name;
+      const away = fx.teams.away.name;
+      const title = `${home} vs ${away}`;
+      const thumb = fx.teams.home.logo;
 
-      // call SportsDB
-      const dbRes = await fetch(
-        `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_KEY}/lookuptv.php?id=${matchId}`
-      );
-      const dbData = await dbRes.json();
-      const broadcasters = dbData?.tvchannels?.map(ch => ch.strChannel) || [];
+      // 2. Fetch broadcaster info from TheSportsDB
+      const tvRes = await fetch(`${sportsDBBase}/lookuptv.php?id=${matchId}`);
+      const tvData = await tvRes.json();
+      const broadcaster = tvData?.tvchannels?.[0]?.strChannel || "Unknown";
 
-      // build slugs for IPTV
-      const slugs = broadcasters.map(ch =>
-        ch.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
-      );
+      // 3. Map broadcaster → IPTV URL
+      let iframeUrl = null;
+      if (broadcaster && broadcaster !== "Unknown") {
+        const slug = broadcaster.toLowerCase().replace(/\s+/g, "-");
+        iframeUrl = `https://t4tv.click/sports/${slug}.php`;
+      }
 
-      matches.push({
-        id: matchId,
+      streams.push({
         title,
         sport,
-        start,
-        thumbnail,
-        broadcasters,
-        slugs
+        time: fx.fixture.date,
+        thumbnail: thumb,
+        source: broadcaster,
+        iframe: iframeUrl
       });
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify(matches)
+      body: JSON.stringify(streams)
     };
 
   } catch (err) {
-    return { statusCode: 500, body: err.message };
+    console.error("get-streams error:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Failed to load streams" })
+    };
   }
 }
