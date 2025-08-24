@@ -43,8 +43,8 @@ async function loadStreams(sport = "all") {
       list.appendChild(card);
     });
 
-    // Select button actions
-    document.querySelectorAll(".select-btn").forEach((btn) => {
+    // Single event binding for selects
+    list.querySelectorAll(".select-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         SELECTED_STREAM = items[btn.dataset.i];
         document.getElementById("fileStatus").textContent =
@@ -52,15 +52,14 @@ async function loadStreams(sport = "all") {
       });
     });
 
-    // Dropdown action
-    dropdown.addEventListener("change", (e) => {
+    dropdown.onchange = (e) => {
       const idx = e.target.value;
       if (items[idx]) {
         SELECTED_STREAM = items[idx];
         document.getElementById("fileStatus").textContent =
           `✅ Selected: ${SELECTED_STREAM.title}`;
       }
-    });
+    };
 
   } catch (err) {
     console.error("Error loading streams", err);
@@ -134,7 +133,6 @@ document.getElementById("cleanDownloadBtn").addEventListener("click", () => {
 // --- Init ---
 loadStreams("all");
 
-// Optional: re-load per sport filter (if you add dropdown)
 
 
 
