@@ -127,20 +127,33 @@
 </section>
 
 <section id="step3" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-link"></i> Step 3: Add TotalSportek Links (Optional)</h2>
-  <label class="switch">
-    <input id="totalsportekMode" type="checkbox" />
-    <span>Include approved link block (TotalSportek + mirrors)</span>
-  </label>
-  <p class="note">When enabled, your exported HTML will include a styled block with official/recommended links.</p>
+  <h2><i class="fas fa-bullhorn"></i> Step 3: Insert Your Ad Code</h2>
+  <p>Paste your banner/overlay/JavaScript ad snippet below:</p>
+  <textarea id="adCode" class="ad-code-input" placeholder="Paste ad script here..."></textarea>
+
+  <div class="tool-actions" style="margin-top:14px">
+    <label class="switch">
+      <input id="toggleTotalsportek" type="checkbox" />
+      <span>Include approved links block (TotalSportek + mirrors)</span>
+    </label>
+    <label class="switch">
+      <input id="toggleBroadcast" type="checkbox" />
+      <span>Embed broadcaster info (from TheSportsDB)</span>
+    </label>
+    <label class="switch">
+      <input id="toggleFreeInterTv" type="checkbox" />
+      <span>Replace with FreeInterTV iframe</span>
+    </label>
+  </div>
 </section>
 
 <section id="step4" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-download"></i> Step 4: Download Embed File</h2>
-  <p>Click below to generate your ready-to-host HTML file with your ads and (optionally) approved links.</p>
-  <button id="cleanDownloadBtn">📥 Download HTML File</button>
+  <h2><i class="fas fa-download"></i> Step 4: Export</h2>
+  <p>Click below to generate your ready-to-host HTML file.</p>
+  <button id="cleanDownloadBtn">🔽 Download File</button>
   <p class="file-status" id="fileStatus">Waiting for export...</p>
 </section>
+
 
 <section class="approved-sources">
   <h2>✅ Approved Stream Sources</h2>
