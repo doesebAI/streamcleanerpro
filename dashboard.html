@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,367 +14,260 @@
     .sidebar nav a { display: block; color: #cbd5e1; text-decoration: none; margin: 1rem 0; font-weight: 500; transition: color 0.2s; }
     .sidebar nav a:hover { color: #3b82f6; }
     .dashboard-content { flex: 1; padding: 2rem 3rem; display: flex; flex-direction: column; gap: 2rem; background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0); }
-    .dashboard-card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .dashboard-card { background: white; padding: 1.25rem; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     h2 i { margin-right: 0.5rem; color: #3b82f6; }
-    .stream-dropdown, .ad-code-input, input, textarea { width: 100%; margin-top: 1rem; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; }
-    .ad-code-input { height: 180px; resize: vertical; }
-    button { background: #3b82f6; color: white; border: none; padding: 0.9rem 1.8rem; border-radius: 0.5rem; font-size: 1rem; margin-top: 1rem; cursor: pointer; }
+    .stream-dropdown, .ad-code-input, input, textarea { width: 100%; margin-top: .6rem; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; }
+    .ad-code-input { height: 160px; resize: vertical; }
+    button { background: #3b82f6; color: white; border: none; padding: 0.9rem 1.2rem; border-radius: 0.5rem; font-size: 1rem; margin-top: .5rem; cursor: pointer; }
     button:hover { background: #2563eb; }
     .file-status { font-size: 0.9rem; color: #64748b; margin-top: 0.5rem; }
-    .stream-thumbnails { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
-    .stream-thumb { width: 180px; height: 100px; background-color: #cbd5e1; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #1e293b; }
-    .gamified { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-    .badge { background-color: #facc15; padding: 0.5rem 1rem; border-radius: 999px; font-weight: bold; color: #1e293b; }
-    @media screen and (max-width: 768px) {
+
+    .thumbs{ display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+    .card{ position:relative; overflow:hidden; border-radius:12px; background:#0b1220; color:#e5e7eb; box-shadow:0 6px 20px rgba(0,0,0,.08); cursor:pointer }
+    .card .top{ display:flex; align-items:center; gap:10px; padding:8px 10px; background: linear-gradient(135deg, #5a0b0b, #102449); font-size:.82rem; font-weight:600; }
+    .logos{ display:flex; justify-content:space-between; align-items:center; padding:20px 14px 14px; background: linear-gradient(90deg,#2a0f12 25%, #0d2b58 75%); min-height:72px;}
+    .logos img{ width:42px; height:42px; object-fit:contain; background:#fff; border-radius:50%; padding:4px;}
+    .vsline{ position:absolute; top:52px; left:50%; transform:translateX(-50%); font-weight:900 }
+    .title{ padding:8px 10px; font-size:.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:#0f162c; }
+    .countdown{position:absolute; top:8px; right:9px; padding:2px 8px; background:#111827; border-radius:999px; font-size:.72rem; border:1px solid #1f2937}
+    .preview{ background:#0b1220; border:1px solid #111827; border-radius:12px; padding:12px; display:flex; gap:12px; color:#e5e7eb; }
+    .preview .thumb{ width:220px; border-radius:10px; overflow:hidden; background:#111 }
+    .preview .thumb img{ width:100% }
+    .preview .meta{ flex:1 }
+    .pill{ display:inline-block; padding:6px 10px; background:#0f162c; border:1px solid #1f2937; border-radius:999px; margin:4px 6px 0 0; font-size:.8rem; }
+    .iframe-box iframe{ width:100%; height:60vh; border:0; border-radius:10px; background:#000 }
+
+    @media screen and (max-width: 900px) {
       .dashboard { flex-direction: column; }
       .sidebar { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-around; }
       .sidebar h1 { display: none; }
-      .dashboard-content { padding: 1.5rem; }
-      .stream-thumbnails { flex-direction: column; align-items: center; }
+      .dashboard-content { padding: 1.25rem; }
       button { width: 100%; }
     }
-    .approved-sources {
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 30px;
-}
-
-.approved-sources h2 {
-  color: #28a745;
-  margin-bottom: 10px;
-}
-
-.approved-sources .note {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 15px;
-}
-
-.approved-sources .source-links a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.approved-sources .source-links a:hover {
-  text-decoration: underline;
-}
-
-.download-btn {
-  background-color: #28a745;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-.download-btn:hover {
-  background-color: #218838;
-}
-
   </style>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="dashboard.js"></script>
-<script>
-  netlifyIdentity.on('init', user => {
-    if (!user) {
-      window.location.href = "/login.html";npm -v
-
-    }
-  });
-  netlifyIdentity.init();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <section class="dashboard">
   <aside class="sidebar">
     <h1><i class="fas fa-bolt"></i> Dashboard</h1>
     <nav>
-      <a href="#step1"><i class="fas fa-satellite-dish"></i> Operations</a>
+      <a href="#ops"><i class="fas fa-satellite-dish"></i> Operations</a>
       <a href="#tutorials"><i class="fas fa-video"></i> Tutorials</a>
       <a href="#profile"><i class="fas fa-user-circle"></i> Profile</a>
       <a href="#support"><i class="fas fa-comment-dots"></i> Support</a>
-      <a href="#" onclick="netlifyIdentity.logout(); location.reload();"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
   </aside>
 
   <main class="dashboard-content">
+    <div id="ops" class="dashboard-card">
+      <h2><i class="fas fa-tv"></i> Live Football</h2>
+      <p class="muted">Pick an event below to preview broadcasters and export a ready file.</p>
+      <select id="streamSelect" class="stream-dropdown"><option>Loading…</option></select>
+      <div id="thumbList" class="thumbs" style="margin-top:10px"></div>
+      <div id="matchPreview" class="preview" style="display:none; margin-top:10px"></div>
 
-    <div class="gamified">
-     
-      <span class="badge">⭐ PRO MEMBER</span>
+      <h3 style="margin-top:12px"><i class="fas fa-bullhorn"></i> Ad Code</h3>
+      <textarea id="adCode" class="ad-code-input" placeholder="Paste your ad script here..."></textarea>
+
+      <label style="display:block; margin-top:6px">
+        <input id="includeLinks" type="checkbox"> Include optional links block in export
+      </label>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button id="downloadBtn">📥 Download HTML</button>
+        <span id="fileStatus" class="file-status">Waiting for export…</span>
+      </div>
     </div>
 
-    <!-- Step 1 -->
-   <section id="step1" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-tv"></i> Step 1: Select Live Stream</h2>
-  <p>Choose a live match or event from the list below (all sports supported):</p>
-  <select id="streamSelect" class="stream-dropdown">
-    <option>Loading live streams...</option>
-  </select>
-  <div id="matchList" class="stream-thumbnails"></div>
-</section>
-
-<section id="step2" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-bullhorn"></i> Step 2: Place Your Ad Code</h2>
-  <p>Paste your banner, overlay, or JavaScript ad snippet below:</p>
-  <textarea id="adCode" class="ad-code-input" placeholder="Paste your ad script here..."></textarea>
-</section>
-
-<section id="step3" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-bullhorn"></i> Step 3: Insert Your Ad Code</h2>
-  <p>Paste your banner/overlay/JavaScript ad snippet below:</p>
-  <textarea id="adCode" class="ad-code-input" placeholder="Paste ad script here..."></textarea>
-
-  <div class="tool-actions" style="margin-top:14px">
-    <label class="switch">
-      <input id="toggleTotalsportek" type="checkbox" />
-      <span>Include approved links block (TotalSportek + mirrors)</span>
-    </label>
-    <label class="switch">
-      <input id="toggleBroadcast" type="checkbox" />
-      <span>Embed broadcaster info (from TheSportsDB)</span>
-    </label>
-    <label class="switch">
-      <input id="toggleFreeInterTv" type="checkbox" />
-      <span>Replace with FreeInterTV iframe</span>
-    </label>
-  </div>
-</section>
-
-<section id="step4" class="dashboard-card animate__animated animate__fadeIn">
-  <h2><i class="fas fa-download"></i> Step 4: Export</h2>
-  <p>Click below to generate your ready-to-host HTML file.</p>
-  <button id="cleanDownloadBtn">🔽 Download File</button>
-  <p class="file-status" id="fileStatus">Waiting for export...</p>
-</section>
-
-
-<section class="approved-sources">
-  <h2>✅ Approved Stream Sources</h2>
-  <p class="note">
-    To keep your account in good standing, we recommend only using these sources for your streams.
-    You can also download them as a standalone HTML reference file.
-  </p>
-
-  <div class="source-links">
-    <a href="https://www.streameast100.com/" target="_blank">StreamEast</a> |
-    <a href="https://totalsportek.football/" target="_blank">TOTALSPORTEK</a> |
-    <a href="https://www.footybite.to/" target="_blank">FOOTYBITE</a> |
-    <a href="https://www.nflbite.to/" target="_blank">NFLBITE</a> |
-    <a href="https://reddit.nbabite.to/" target="_blank">NBABITE</a> |
-    <a href="https://sportsurge100.com/" target="_blank">SPORTSURGE</a> |
-    <a href="https://hesgoalfree.com/" target="_blank">HESGOAL</a> |
-    <a href="https://soccer-1000.com/" target="_blank">SOCCER STREAMS</a> |
-    <a href="https://www.f1streamsfree.com/" target="_blank">F1 STREAMS</a> |
-    <a href="https://hufoot.com/" target="_blank">Hoofoot</a>
-  </div>
-
-  <button id="downloadSourcesBtn" class="download-btn">📥 Download Sources HTML</button>
-</section>
-
-
-
-
-
-    <!-- Tutorials -->
-    <section id="tutorials" class="dashboard-card animate__animated animate__fadeIn">
+    <section id="tutorials" class="dashboard-card">
       <h2><i class="fas fa-video"></i> Tutorials</h2>
-      <p>Click a question to watch a quick tutorial.</p>
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <button onclick="showVideo('host')">📁 How to host your cleaned file</button>
-        <button onclick="showVideo('traffic')">🚦 How to get traffic to your stream</button>
-        <button onclick="showVideo('ads')">💸 How to generate and insert ad JS code</button>
-        <button onclick="showVideo('legal')">📜 Legal tips: embedding streams safely</button>
-        <button onclick="showVideo('optimize')">⚙️ How to optimize embeds for speed</button>
-      </div>
-      <div id="videoContainer" style="margin-top: 2rem; display:none;">
-        <h3>Tutorial Video:</h3>
-        <iframe id="tutorialVideo" width="100%" height="315" style="border-radius: 1rem; border: none;" allowfullscreen></iframe>
-      </div>
+      <p>Quick how-tos coming soon.</p>
     </section>
 
-    <!-- Profile -->
-<section id="profile">
-  <h2>Profile</h2>
-  <div class="profile-card">
-    <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-    <button id="resetPasswordBtn" class="btn">Reset Password</button>
-  </div>
-</section>
+    <section id="profile" class="dashboard-card">
+      <h2><i class="fas fa-user-circle"></i> Profile</h2>
+      <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
+      <input type="email" id="updateEmail" placeholder="New email">
+      <input type="password" id="updatePassword" placeholder="New password">
+      <button id="saveProfileBtn">Update Profile</button>
+    </section>
 
-    <!-- Support -->
-<section id="support">
-  <h2>Support</h2>
-  <form id="supportForm" action="https://formspree.io/f/xdkdywpq" method="POST">
-    <label>Subject:</label>
-    <input type="text" name="subject" required>
-
-    <label>Message:</label>
-    <textarea name="message" required></textarea>
-
-    <input type="hidden" name="email" id="supportEmail">
-
-    <button type="submit" class="btn">Send Message</button>
-  </form>
-</section>
-
-
+    <section id="support" class="dashboard-card">
+      <h2><i class="fas fa-comment-dots"></i> Support</h2>
+      <form id="supportForm" action="https://formspree.io/f/xdkdywpq" method="POST">
+        <label>Subject:</label>
+        <input type="text" name="subject" required>
+        <label>Message:</label>
+        <textarea name="message" required></textarea>
+        <input type="hidden" name="email" id="supportEmail">
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
   </main>
 </section>
 
 <script>
-// -----------------------------
-// Load Streams (Scraper + Fallback)
-// -----------------------------
-let selectedStream = null;
+/* Supabase auth setup */
+const supabase = supabase.createClient("https://rfuilglpyamrjbtkacqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I");
+let user = null;
 
-async function loadStreams() {
-  try {
-    const res = await fetch("/.netlify/functions/fetch-streams");
-    let streams = await res.json();
-
-    // Fallback if scraper returns empty
-    if (!streams || streams.length === 0) {
-      streams = [
-        {
-          match: "Manchester City vs Arsenal",
-          iframe: "https://vibestreams.org/assets/s2.php",
-          thumbnail: "https://via.placeholder.com/180x100?text=Man+City+vs+Arsenal"
-        },
-        {
-          match: "PSG vs Marseille",
-          iframe: "https://vibestreams.org/assets/s5.php",
-          thumbnail: "https://via.placeholder.com/180x100?text=PSG+vs+Marseille"
-        },
-        {
-          match: "Bayern Munich vs Dortmund",
-          iframe: "https://vibestreams.org/assets/s6.php",
-          thumbnail: "https://via.placeholder.com/180x100?text=Bayern+vs+Dortmund"
-        }
-      ];
-    }
-
-    const select = document.getElementById("streamSelect");
-    const list = document.getElementById("matchList");
-    select.innerHTML = "";
-    list.innerHTML = "";
-
-    streams.forEach((stream, idx) => {
-      // Dropdown
-      const option = document.createElement("option");
-      option.value = idx;
-      option.textContent = stream.match;
-      select.appendChild(option);
-
-      // Thumbnail
-      const thumb = document.createElement("div");
-      thumb.className = "stream-thumb";
-      thumb.innerHTML = `<img src="${stream.thumbnail}" alt="${stream.match}" style="width:100%;height:100%;border-radius:0.5rem;">`;
-      thumb.onclick = () => { selectedStream = stream; select.value = idx; };
-      list.appendChild(thumb);
-    });
-
-    select.onchange = () => {
-      selectedStream = streams[select.value];
-    };
-
-    if (streams.length > 0) {
-      selectedStream = streams[0];
-      select.value = 0;
-    }
-
-  } catch (err) {
-    console.error("Error loading streams:", err);
+async function initAuth(){
+  const { data } = await supabase.auth.getSession();
+  user = data.session?.user || null;
+  if(user){
+    document.getElementById("profileEmail").textContent = user.email;
+    document.getElementById("supportEmail").value = user.email;
+  } else {
+    window.location.href = "/login.html"; // redirect to login
   }
 }
 
-// -----------------------------
-// Cleaning Simulation
-// -----------------------------
-function simulateCleaning() {
-  const status = document.getElementById("cleanStatus");
-  status.textContent = "⏳ Cleaning in progress...";
-  setTimeout(() => {
-    status.textContent = "✅ Cleaning complete. Ads removed.";
-  }, 2000);
-}
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await supabase.auth.signOut();
+  window.location.reload();
+});
 
-// -----------------------------
-// Export Cleaned HTML
-// -----------------------------
-document.getElementById("cleanDownloadBtn").addEventListener("click", async () => {
-  if (!selectedStream) {
-    alert("Please select a match first!");
-    return;
+document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
+  const newEmail = document.getElementById("updateEmail").value.trim();
+  const newPass = document.getElementById("updatePassword").value.trim();
+  if(!user) return alert("No user logged in");
+  if(newEmail){
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if(error) return alert(error.message);
+    document.getElementById("profileEmail").textContent = newEmail;
   }
+  if(newPass){
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    if(error) return alert(error.message);
+  }
+  alert("Profile updated!");
+});
 
-  const adCode = document.getElementById("adCode").value;
+/* Football API and Dashboard */
+const MIRROR_LINK_PLACEHOLDERS = [
+  { label: "StreamEast", url: "https://www.streameast100.com/" },
+  { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
+  { label: "FOOTYBITE", url: "https://www.footybite.to/" },
+  { label: "NFLBITE", url: "https://www.nflbite.to/" },
+  { label: "NBABITE", url: "https://reddit.nbabite.to/" },
+  { label: "SPORTSURGE", url: "https://sportsurge100.com/" },
+  { label: "HESGOAL", url: "https://hesgoalfree.com/" },
+  { label: "SOCCER STREAMS", url: "https://soccer-1000.com/" },
+  { label: "F1 STREAMS", url: "https://www.f1streamsfree.com/" },
+  { label: "Hoofoot", url: "https://hufoot.com/" }
+];
 
-  const res = await fetch("/.netlify/functions/clean-stream", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      iframeUrl: selectedStream.iframe,
-      adScript: adCode,
-      matchName: selectedStream.match
-    })
+let footballFixtures = [];
+let selectedFixture = null;
+
+async function fetchFootballFixtures(){
+  const res = await fetch("https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all", {
+    headers:{
+      "X-RapidAPI-Key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I",
+      "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"
+    }
   });
+  const data = await res.json();
+  footballFixtures = data.response || [];
+  populateDropdown();
+}
 
-  const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
+function populateDropdown(){
+  const sel = document.getElementById("streamSelect");
+  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
+  footballFixtures.forEach((fx,i)=>{
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `${fx.teams.home.name} vs ${fx.teams.away.name} • ${new Date(fx.fixture.date).toLocaleString()}`;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener("change", ()=> showPreviewFootball(sel.value));
+}
+
+function showPreviewFootball(idx){
+  const fx = footballFixtures[idx];
+  if(!fx) return;
+  selectedFixture = fx;
+
+  const box = document.getElementById("matchPreview");
+  box.style.display = "flex"; box.innerHTML = "";
+
+  const left = document.createElement("div");
+  left.className="thumb";
+  left.innerHTML = `<img src="${fx.league.logo}" alt="${fx.league.name}">`;
+
+  const right = document.createElement("div");
+  right.className="meta";
+  const playerEmbed = `https://your-iptv-provider/${fx.fixture.id}`;
+  right.innerHTML = `
+    <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
+    <div class="muted">${new Date(fx.fixture.date).toLocaleString()}</div>
+    <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+    <div class="iframe-box" style="margin-top:10px">
+      <iframe src="${playerEmbed}" allowfullscreen></iframe>
+    </div>
+  `;
+  box.appendChild(left);
+  box.appendChild(right);
+}
+
+/* Export HTML */
+function exportHTML(fx, adCode, includeLinks){
+  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
+  const linksBlock = includeLinks
+    ? `<div class="links"><ul>${MIRROR_LINK_PLACEHOLDERS.map(l => `<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}</ul></div>`
+    : "";
+
+  const html = `<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${fx.teams.home.name} vs ${fx.teams.away.name}</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+.container{max-width:1100px;margin:0 auto;padding:14px}
+.meta{display:flex;gap:12px;align-items:center}
+.meta img{width:140px;border-radius:10px}
+.pill{display:inline-block;background:#0f162c;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;margin:3px 6px 0 0;font-size:12px;color:#ddd}
+iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
+.links a{color:#60a5fa;text-decoration:none}
+</style></head><body>
+<div class="container">
+  <div class="meta">
+    <img src="${fx.league.logo}" alt="${fx.league.name}">
+    <div>
+      <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
+      <div style="opacity:.85">${new Date(fx.fixture.date).toLocaleString()}</div>
+      <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+    </div>
+  </div>
+  <iframe src="${playerEmbed}" allowfullscreen></iframe>
+  <div class="ads">${adCode || "<!-- No ads provided -->"}</div>
+  ${linksBlock}
+</div></body></html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = selectedStream.match.replace(/\s+/g, '_') + ".html";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  a.download = `${fx.teams.home.name.replace(/\s+/g,"_")}_vs_${fx.teams.away.name.replace(/\s+/g,"_")}.html`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
 
+/* Download button */
+document.getElementById("downloadBtn").addEventListener("click", ()=>{
+  if(!selectedFixture) return alert("Select a match first.");
+  const include = document.getElementById("includeLinks").checked;
+  const adCode = document.getElementById("adCode").value || "";
+  exportHTML(selectedFixture, adCode, include);
   document.getElementById("fileStatus").textContent = "✅ File downloaded.";
 });
 
-// -----------------------------
-// Tutorials Video Loader
-// -----------------------------
-function showVideo(topic) {
-  const videoMap = {
-    host: "https://www.youtube.com/embed/v1HostingDemo",
-    traffic: "https://www.youtube.com/embed/v2TrafficTips",
-    ads: "https://www.youtube.com/embed/v3AdCodeSetup",
-    legal: "https://www.youtube.com/embed/v4LegalTips",
-    optimize: "https://www.youtube.com/embed/v5EmbedSpeed"
-  };
-  const iframe = document.getElementById("tutorialVideo");
-  const container = document.getElementById("videoContainer");
-  iframe.src = videoMap[topic] || "";
-  container.style.display = "block";
-}
-
-// -----------------------------
-// Netlify Identity Integration
-// -----------------------------
-const user = netlifyIdentity.currentUser();
-if (user) {
-  document.getElementById("profileEmail").textContent = user.email;
-  document.getElementById("supportEmail").value = user.email;
-}
-
-document.getElementById("resetPasswordBtn").addEventListener("click", () => {
-  if (user) {
-    netlifyIdentity.open('reset');
-  }
+/* Init */
+document.addEventListener("DOMContentLoaded", ()=>{
+  initAuth();
+  fetchFootballFixtures();
 });
-
-// -----------------------------
-// Init
-// -----------------------------
-document.addEventListener("DOMContentLoaded", loadStreams);
 </script>
-
-
 </body>
 </html>
