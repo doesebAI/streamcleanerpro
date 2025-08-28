@@ -137,6 +137,19 @@
     .features { list-style: none; padding:0; margin:0 0 2rem; text-align:left; max-width:300px; margin-inline:auto; }
     .features li{ margin:.5rem 0 }
     footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #6b7280; }
+    /* Countdown animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.countdown { animation: blink 1s infinite; }
+
+/* Hover effect for cards (dashboard style) */
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
   </style>
 </head>
 <body>
@@ -292,8 +305,8 @@
 
 <script>
 /** ===========================
- *  ROI calc (unchanged)
- *  =========================== */
+ * ROI Calculator (unchanged)
+ * =========================== */
 function calcROI() {
   const visits = +document.getElementById('visits').value||0;
   const ppv = +document.getElementById('ppv').value||1;
@@ -314,24 +327,20 @@ function calcROI() {
 }
 document.getElementById('calcBtn').addEventListener('click', calcROI);
 
+/** ===========================
+ * Football API (optional)
+ * =========================== */
 const API_FOOTBALL_KEY = "15baf5cd3f86610045f686247288fbe2"; 
 const API_HOST = "v3.football.api-sports.io";
 
-// Example: EPL = league 39, season 2025
 async function fetchFootballFixtures() {
-  
   const url = `https://${API_HOST}/fixtures?league=39&season=2024&next=10`;
-
-
   const r = await fetch(url, {
     method: "GET",
-    headers: {
-      "x-apisports-key": API_FOOTBALL_KEY
-    }
+    headers: { "x-apisports-key": API_FOOTBALL_KEY }
   });
-
   const data = await r.json();
-  console.log("Fixtures Response:", data); // Debugging
+  console.log("Fixtures Response:", data);
   return data.response || [];
 }
 
@@ -339,20 +348,12 @@ async function loadFootball() {
   const fixtures = await fetchFootballFixtures();
   const wrap = document.getElementById("thumbList");
   wrap.innerHTML = "";
-
-  if (!fixtures.length) {
-    wrap.innerHTML = "<p>No fixtures today</p>";
-    return;
-  }
-
-  fixtures.forEach((fx) => {
+  if (!fixtures.length) { wrap.innerHTML = "<p>No fixtures today</p>"; return; }
+  fixtures.forEach(fx => {
     const home = fx.teams.home;
     const away = fx.teams.away;
     const league = fx.league.name;
-    const when = new Date(fx.fixture.date).toLocaleString([], { 
-      month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' 
-    });
-
+    const when = new Date(fx.fixture.date).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
@@ -364,11 +365,7 @@ async function loadFootball() {
       </div>
       <div class="title">${home.name} vs ${away.name}</div>
     `;
-
-    card.addEventListener("click", () => {
-      showPreviewFootball(fx);
-    });
-
+    card.addEventListener("click", () => showPreviewFootball(fx));
     wrap.appendChild(card);
   });
 }
@@ -380,7 +377,6 @@ function showPreviewFootball(fx) {
   const away = fx.teams.away;
   const league = fx.league.name;
   const when = new Date(fx.fixture.date).toLocaleString();
-
   preview.innerHTML = `
     <div class="thumb"><img src="${fx.league.logo}" alt="${league}"></div>
     <div class="meta">
@@ -388,23 +384,19 @@ function showPreviewFootball(fx) {
       <div class="muted">${league} • ${when}</div>
       <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
       <div class="iframe-box" style="margin-top:10px">
-        <!-- Replace with your legal embed -->
         <iframe src="https://t4tv.click/sports/${fx.fixture.id}" allowfullscreen></iframe>
       </div>
     </div>
   `;
 }
-
 window.addEventListener("DOMContentLoaded", loadFootball);
 
-
 /** ===========================
- *  Build catalog + UI
- *  =========================== */
+ * Dashboard-style Thumbnails & Preview
+ * =========================== */
 let CATALOG = [];
 
 function countdownText(ev){
-  // crude countdown to kickoff if strTimestamp exists
   if (!ev.strTimestamp) return "Upcoming";
   const now = Date.now();
   const start = new Date(ev.strTimestamp).getTime();
@@ -416,86 +408,94 @@ function countdownText(ev){
   return `${String(hrs).padStart(2,"0")}:${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
 }
 
-async function loadStreams(){
-  const all=[];
-  for (const comp of COMP_LIST){
-    try{
-      const evs = await fetchEventsToday(comp.id);
-      for (const ev of evs) {
-  // Only allow soccer/football (skip if clearly another sport)
-  if (ev.strSport && ev.strSport.toLowerCase() !== "soccer") continue;
-
-  // Defensive: if no teams, skip
-  if (!ev.idHomeTeam || !ev.idAwayTeam) continue;
-
-  const homeBadge = await fetchTeamBadge(ev.idHomeTeam);
-  const awayBadge = await fetchTeamBadge(ev.idAwayTeam);
-  const title = ev.strEvent || `${ev.strHomeTeam||""} vs ${ev.strAwayTeam||""}`.trim();
-  const thumb = ev.strThumb || ev.strPoster || ev.strBanner || FALLBACK_THUMB;
-  const when = fmtLocal(ev.strTimestamp, ev.dateEvent, ev.strTime);
-  let broadcast = [];
-  try { broadcast = await fetchTVForEvent(ev.idEvent); } catch {}
-
-  all.push({
-    idEvent: ev.idEvent,
-    title, league: ev.strLeague || comp.label,
-    when, ts: ev.strTimestamp,
-    home: ev.strHomeTeam, away: ev.strAwayTeam,
-    homeBadge, awayBadge,
-    thumb, broadcasters: broadcast
+function updateCountdowns() {
+  const now = Date.now();
+  document.querySelectorAll(".card").forEach(card=>{
+    const ts = card.dataset.timestamp;
+    if(!ts) return;
+    const diff = new Date(ts).getTime() - now;
+    let text = "";
+    if(diff <=0){ text="Live"; }
+    else{
+      const hrs = Math.floor(diff/3.6e6);
+      const mins = Math.floor((diff%3.6e6)/6e4);
+      const secs = Math.floor((diff%6e4)/1000);
+      text = `${String(hrs).padStart(2,"0")}:${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+    }
+    const cd = card.querySelector(".countdown");
+    if(cd) cd.textContent = text;
   });
 }
+setInterval(updateCountdowns,1000);
 
-
-    
-    }catch(e){ console.warn("Load fail", comp, e); }
-  }
-  CATALOG = all;
-
-  // Populate <select>
-  const sel = $("#streamSelect");
-  sel.innerHTML = `<option value="">-- Choose a live event --</option>`;
+function buildThumbs() {
+  const wrap = document.getElementById("thumbList");
+  wrap.innerHTML="";
   CATALOG.forEach((it,i)=>{
-    sel.appendChild(el("option",{value:String(i), textContent:`[${it.league}] ${it.title} — ${it.when}`}));
-  });
-  sel.addEventListener("change", ()=> showPreview(parseInt(sel.value,10)));
-
-  // Build thumbnails
-  const wrap = $("#thumbList"); wrap.innerHTML="";
-  CATALOG.forEach((it,i)=>{
-    const card = el("div",{className:"card", title:`${it.title} (${it.when})`});
+    const card = document.createElement("div");
+    card.className="card";
+    card.title=`${it.title} (${it.when})`;
+    card.dataset.timestamp = it.ts;
     const status = countdownText({strTimestamp: it.ts});
-    card.innerHTML = `
-      <div class="top"><span>Upcoming</span><span class="badge-time">• ${it.when}</span></div>
+    card.innerHTML=`
+      <div class="top"><span>${it.league}</span><span class="badge-time">• ${it.when}</span></div>
       <div class="countdown">${status}</div>
       <div class="logos">
         <img src="${it.homeBadge||'https://via.placeholder.com/46?text=H'}" alt="${it.home||'Home'}">
         <div class="vsline">VS</div>
         <img src="${it.awayBadge||'https://via.placeholder.com/46?text=A'}" alt="${it.away||'Away'}">
       </div>
-      <div class="title">${it.title}</div>`;
-    card.addEventListener("click", ()=>{
-      sel.value = String(i);
+      <div class="title">${it.title}</div>
+    `;
+    card.addEventListener("click",()=>{
+      const sel = document.getElementById("streamSelect");
+      sel.value = i;
       showPreview(i);
       window.scrollTo({top: document.querySelector('#tool').offsetTop - 20, behavior:'smooth'});
     });
     wrap.appendChild(card);
   });
+  if(CATALOG.length){ showPreview(0); }
+}
 
-  // Auto-select first for preview
-  if (CATALOG.length){ sel.value="0"; showPreview(0); }
+async function loadStreams(){
+  const all=[];
+  for (const comp of COMP_LIST){
+    try{
+      const evs = await fetchEventsToday(comp.id);
+      for (const ev of evs){
+        if(ev.strSport && ev.strSport.toLowerCase() !== "soccer") continue;
+        if(!ev.idHomeTeam || !ev.idAwayTeam) continue;
+        const homeBadge = await fetchTeamBadge(ev.idHomeTeam);
+        const awayBadge = await fetchTeamBadge(ev.idAwayTeam);
+        const title = ev.strEvent || `${ev.strHomeTeam||""} vs ${ev.strAwayTeam||""}`.trim();
+        const thumb = ev.strThumb || ev.strPoster || ev.strBanner || FALLBACK_THUMB;
+        const when = fmtLocal(ev.strTimestamp, ev.dateEvent, ev.strTime);
+        let broadcast = [];
+        try{ broadcast = await fetchTVForEvent(ev.idEvent); } catch{}
+        all.push({idEvent:ev.idEvent, title, league: ev.strLeague||comp.label, when, ts: ev.strTimestamp,
+                  home: ev.strHomeTeam, away: ev.strAwayTeam, homeBadge, awayBadge, thumb, broadcasters:broadcast});
+      }
+    }catch(e){ console.warn("Load fail", comp, e); }
+  }
+  CATALOG = all;
+
+  // Populate <select>
+  const sel = document.getElementById("streamSelect");
+  sel.innerHTML = `<option value="">-- Choose a live event --</option>`;
+  CATALOG.forEach((it,i)=> sel.appendChild(el("option",{value:String(i), textContent:`[${it.league}] ${it.title} — ${it.when}`})));
+
+  buildThumbs();
 }
 
 function showPreview(idx){
-  const box = $("#matchPreview");
+  const box = document.getElementById("matchPreview");
   box.style.display = "block";
   box.innerHTML = "";
-  const it = CATALOG[idx]; if (!it) return;
-
-  // broadcaster slug + placeholder player
+  const it = CATALOG[idx]; if(!it) return;
   const firstBc = (it.broadcasters && it.broadcasters[0]) || "Broadcast TBA";
   const bcSlug = slugifyChannel(firstBc);
-  const PLACEHOLDER_PLAYER = `https://t4tv.click/sports/${bcSlug}`; // replace legally
+  const PLACEHOLDER_PLAYER = `https://t4tv.click/sports/${bcSlug}`;
 
   const left = el("div",{className:"thumb"});
   left.innerHTML = `<img src="${it.thumb||FALLBACK_THUMB}" alt="${it.title}">`;
@@ -508,7 +508,6 @@ function showPreview(idx){
       ${(it.broadcasters?.length? it.broadcasters : ["Broadcaster TBA"]).map(b=>`<span class="pill">${b}</span>`).join("")}
     </div>
     <div class="iframe-box" style="margin-top:10px">
-      <!-- Replace src below with your lawful stream provider -->
       <iframe src="${PLACEHOLDER_PLAYER}" allowfullscreen referrerpolicy="no-referrer"></iframe>
     </div>
   `;
@@ -517,8 +516,8 @@ function showPreview(idx){
 }
 
 /** ===========================
- *  Download flow (email-gated once per email)
- *  =========================== */
+ * Download / Email Gate
+ * =========================== */
 const MIRROR_LINK_PLACEHOLDERS = [
   { label: "StreamEast", url: "https://www.streameast100.com/" },
   { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
@@ -532,104 +531,62 @@ const MIRROR_LINK_PLACEHOLDERS = [
   { label: "Hoofoot", url: "https://hufoot.com/" }
 ];
 
-function requestEmailGate(){
-  document.getElementById("emailInline").style.display="block";
-}
+function requestEmailGate(){ document.getElementById("emailInline").style.display="block"; }
 function normalizeEmail(e){ return (e||"").trim().toLowerCase(); }
 function hashEmail(e){ let h=0; for(let i=0;i<e.length;i++){ h=((h<<5)-h)+e.charCodeAt(i); h|=0;} return String(h); }
 
 function exportHTML(ev, adCode, includeLinks){
   const bc = (ev.broadcasters&&ev.broadcasters[0]) || "live-channel";
   const bcSlug = slugifyChannel(bc);
-  const PLAYER = `https://t4tv.click/sports/${bcSlug}`; // swap with your legal embed
-
+  const PLAYER = `https://t4tv.click/sports/${bcSlug}`;
   let linksHtml = "";
-  if (includeLinks){
-    linksHtml = `
-    <div class="links">
-      <h3>Helpful Links</h3>
-      <ul>
-        ${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}
-      </ul>
-    </div>`;
+  if(includeLinks){
+    linksHtml = `<div class="links"><h3>Helpful Links</h3><ul>${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}</ul></div>`;
   }
-
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${ev.title} — ${ev.league}</title>
-<style>
-body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-.container{max-width:1100px;margin:0 auto;padding:14px}
-.meta{display:flex;gap:12px;align-items:center}
-.meta img{width:140px;border-radius:10px;object-fit:cover}
-.pill{display:inline-block;background:#0f162c;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;margin:3px 6px 0 0;font-size:12px;color:#ddd}
-iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
-.ads{margin:12px auto;max-width:1100px}
-.links a{color:#60a5fa}
-</style></head>
-<body>
-<div class="container">
-  <div class="meta">
-    <img src="${ev.thumb||'https://via.placeholder.com/640x360?text=Event'}" alt="${ev.title}">
-    <div>
-      <div style="font-weight:700;font-size:18px">${ev.title}</div>
-      <div style="opacity:.85">${ev.league} • ${ev.when}</div>
-      <div style="margin-top:6px">
-        ${(ev.broadcasters?.length?ev.broadcasters:["Broadcaster TBA"]).map(b=>`<span class="pill">${b}</span>`).join("")}
-      </div>
-    </div>
-  </div>
-
-  <!-- Replace src with your LAWFUL provider -->
-  <iframe src="${PLAYER}" allowfullscreen referrerpolicy="no-referrer"></iframe>
-
-  <div class="ads">
-    ${adCode || "<!-- (No ad code provided) -->"}
-  </div>
-
-  ${linksHtml}
-</div>
-</body></html>`;
+<style>body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}.container{max-width:1100px;margin:0 auto;padding:14px}.meta{display:flex;gap:12px;align-items:center}.meta img{width:140px;border-radius:10px;object-fit:cover}.pill{display:inline-block;background:#0f162c;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;margin:3px 6px 0 0;font-size:12px;color:#ddd}iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}.ads{margin:12px auto;max-width:1100px}.links a{color:#60a5fa}</style></head>
+<body><div class="container">
+<div class="meta">
+<img src="${ev.thumb||'https://via.placeholder.com/640x360?text=Event'}" alt="${ev.title}">
+<div>
+<div style="font-weight:700;font-size:18px">${ev.title}</div>
+<div style="opacity:.85">${ev.league} • ${ev.when}</div>
+<div style="margin-top:6px">${(ev.broadcasters?.length?ev.broadcasters:["Broadcaster TBA"]).map(b=>`<span class="pill">${b}</span>`).join("")}</div>
+</div></div>
+<iframe src="${PLAYER}" allowfullscreen referrerpolicy="no-referrer"></iframe>
+<div class="ads">${adCode||"<!-- (No ad code provided) -->"}</div>${linksHtml}</div></body></html>`;
 
   const blob = new Blob([html],{type:"text/html"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = ev.title.replace(/\s+/g,"_") + ".html";
+  a.href = url; a.download = ev.title.replace(/\s+/g,"_")+".html";
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
 
-document.getElementById("downloadTrigger").addEventListener("click", ()=>{
-  // show email gate
-  requestEmailGate();
-});
-
+document.getElementById("downloadTrigger").addEventListener("click", requestEmailGate);
 document.getElementById("confirmDownload").addEventListener("click", ()=>{
   const emailEl = document.getElementById("userEmail");
   const sel = document.getElementById("streamSelect");
   const idx = parseInt(sel.value,10);
-  if (isNaN(idx)){ alert("Please select an event first."); return; }
-
+  if(isNaN(idx)){ alert("Please select an event first."); return; }
   const email = normalizeEmail(emailEl.value);
-  if (!/^\S+@\S+\.\S+$/.test(email)){ alert("Please enter a valid email."); return; }
-
-  const KEY = "scp_trial_" + hashEmail(email);
-  if (localStorage.getItem(KEY)){ alert("This email already used the one-time free download on this device."); return; }
-
+  if(!/^\S+@\S+\.\S+$/.test(email)){ alert("Please enter a valid email."); return; }
+  const KEY = "scp_trial_"+hashEmail(email);
+  if(localStorage.getItem(KEY)){ alert("This email already used the one-time free download on this device."); return; }
   const ev = CATALOG[idx];
-  const ad = document.getElementById("adCode").value || "";
+  const ad = document.getElementById("adCode").value||"";
   const includeLinks = document.getElementById("includeLinks").checked;
-
   exportHTML(ev, ad, includeLinks);
-
-  // mark as used
-  localStorage.setItem(KEY, "1");
+  localStorage.setItem(KEY,"1");
   document.getElementById("emailInline").style.display="none";
 });
 
-/** init */
+/** ===== Init ===== */
 document.addEventListener("DOMContentLoaded", loadStreams);
 </script>
+
 </body>
 </html>
