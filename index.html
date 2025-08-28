@@ -1,491 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stream Cleaner Pro — Select Any Live Sports Stream, Add Your Ads, Download</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stream Cleaner Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root{
-      --bg: #0f172a;           /* slate-900 */
-      --panel: #0b1226;        /* deep navy panel */
-      --muted: #94a3b8;        /* slate-400 */
-      --text: #e2e8f0;         /* slate-200 */
-      --brand: #60a5fa;        /* blue-400 */
-      --brand-2:#38bdf8;       /* sky-400 */
-      --ok:#22c55e;            /* green-500 */
-      --warn:#f59e0b;          /* amber-500 */
-      --error:#ef4444;         /* red-500 */
-      --ring: 0 0 0 3px rgba(96,165,250,0.25);
+      --brand:#2563eb;
+      --brand-2:#1d4ed8;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --card:#ffffff;
+      --soft:#e2e8f0;
+      --grad1:#f1f5f9;
+      --grad2:#e2e8f0;
+      --pill:#0b1224;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(56,189,248,.15), transparent 60%),
-                  radial-gradient(1000px 500px at 80% 0%, rgba(96,165,250,.18), transparent 60%),
-                  var(--bg);
-      color:var(--text);
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #ffffff, #f0f2f5);
+      color:#0f172a;
     }
-    a{color:var(--brand)}
-    .wrap{max-width:1120px; margin:0 auto; padding:24px}
-    header{
-      display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 24px;
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
-    .brand{display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px}
-    .brand i{color:var(--brand)}
-    nav a{color:var(--muted); text-decoration:none; margin:0 12px; font-weight:600}
-    nav a:hover{color:var(--text)}
-    .cta{background:linear-gradient(135deg,var(--brand),var(--brand-2)); border:none; padding:10px 16px; color:white; border-radius:10px; font-weight:700; cursor:pointer}
-    .cta:hover{filter:brightness(1.08)}
-    .hero{
-      display:grid; grid-template-columns: 1.2fr 1fr; gap:26px; align-items:stretch; margin-top:4px;
+    nav a {
+      text-decoration: none;
+      color: #1f2937;
+      margin-left: 1.5rem;
+      font-weight: 500;
     }
-    .hero h1{font-size:44px; line-height:1.05; margin:4px 0 8px}
-    .hero p.lead{color:var(--muted); font-size:18px; margin:0 0 18px}
-    .tool{
-      background:linear-gradient(180deg, rgba(15,23,42,.7), rgba(11,18,38,.9));
-      border:1px solid rgba(148,163,184,.15);
-      border-radius:18px; padding:18px; position:relative; overflow:hidden;
-      box-shadow: 0 10px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    .dashboard-btn {
+      background-color: var(--brand);
+      color: #fff;
+      border: none; border-radius: 0.5rem;
+      padding: 0.6rem 1.4rem; font-size: 1rem; font-weight: 600;
+      cursor:pointer;
     }
-    .tool::after{
-      content:""; position:absolute; inset:-2px;
-      background:
-        linear-gradient(120deg, transparent 0 35%, rgba(96,165,250,.09) 45%, transparent 55% 100%),
-        repeating-linear-gradient(90deg, rgba(56,189,248,.05), rgba(56,189,248,.05) 1px, transparent 1px, transparent 24px);
-      pointer-events:none; mask: linear-gradient(#000,rgba(0,0,0,.2));
+    section {
+      padding: 3rem 2rem;
+      border-top: 1px solid #e0e0e0;
     }
-    .step{margin-bottom:14px}
-    label{display:block; font-size:13px; color:var(--muted); margin:6px 0}
-    input, select, textarea{
-      width:100%; padding:12px 14px; background:#0a1329; color:var(--text);
-      border:1px solid rgba(148,163,184,.2); border-radius:12px; outline:none;
+
+    /* --- Tool (full-viewport like hero) --- */
+    .tool-section {
+      min-height: 100vh;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      background: linear-gradient(to bottom, var(--grad1), var(--grad2));
+      text-align:center;
     }
-    input:focus, select:focus, textarea:focus{box-shadow:var(--ring); border-color:rgba(96,165,250,.5)}
-    .inline{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .tool-actions{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px}
-    .muted{color:var(--muted)}
-    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0a1329; border:1px solid rgba(148,163,184,.18); font-size:12px}
-    .switch{display:flex; align-items:center; gap:10px}
-    .switch input{width:auto}
-    .pill{padding:6px 10px; border-radius:999px; border:1px dashed rgba(148,163,184,.3); color:var(--muted); font-size:12px}
-    .right-card{
-      background:linear-gradient(180deg, rgba(11,18,38,.85), rgba(10,19,41,.95));
-      border:1px solid rgba(148,163,184,.15);
-      border-radius:18px; padding:18px;
-      box-shadow: 0 10px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    .tool-box {
+      background: #fff; border-radius: 14px; padding: 1.5rem; max-width: 1100px; width:100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: left;
     }
-    .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
-    .mini{
-      background:#0a1329; border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:14px;
+    .tool-grid{
+      display:grid; grid-template-columns: 360px 1fr; gap:1.25rem;
     }
-    .mini h4{margin:0 0 6px; font-size:14px}
-    .mini p{margin:0; color:var(--muted); font-size:13px}
-    .section{margin-top:40px}
-    .pricing{
-      background:linear-gradient(180deg, rgba(10,19,41,.9), rgba(11,18,38,.95));
-      border:1px solid rgba(148,163,184,.18);
-      padding:18px; border-radius:18px;
+    @media (max-width: 960px){ .tool-grid{grid-template-columns:1fr} }
+
+    .tool-step { margin-bottom: 1rem; }
+    .tool-step h3 { margin: 0 0 0.4rem; }
+    .tool-step select, .tool-step textarea, .tool-step input {
+      width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px;
     }
-    .price {font-size:40px; font-weight:800}
-    .list{display:grid; gap:8px; margin:12px 0}
-    .list .row{display:flex; gap:10px; align-items:flex-start}
-    .row i{color:var(--ok); margin-top:3px}
-    .roi-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-    .card{background:#0a1329; border:1px solid rgba(148,163,184,.18); border-radius:14px; padding:14px}
-    footer{margin:40px auto; color:var(--muted); text-align:center}
-    @media (max-width:980px){
-      .hero{grid-template-columns:1fr}
-      nav{display:none}
+    .cta-btn { background: var(--brand); color: #fff; border: none; padding: 0.8rem 1.6rem; border-radius: 10px; cursor:pointer }
+    .cta-btn:hover { background: var(--brand-2); }
+    .email-inline { margin-top: 1rem; display: none; }
+    .email-inline input { width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .email-inline button { background: #22c55e; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; margin-top: 0.8rem; cursor: pointer; }
+    .email-inline button:hover { background: #16a34a; }
+
+    /* --- Thumbnails strip --- */
+    .thumbs{
+      display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:12px;
     }
+    .card{
+      position:relative; overflow:hidden; border-radius:12px; background: #0b1220; color:#e5e7eb;
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      cursor:pointer; transition:transform .2s ease;
+    }
+    .card:hover{ transform: translateY(-2px); }
+    .card .top{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; background: linear-gradient(135deg, #5a0b0b, #102449);
+      font-size:.85rem; font-weight:600;
+    }
+    .badge-time{ opacity:.9 }
+    .vsline{ position:absolute; top:58px; left:50%; transform:translateX(-50%); font-weight:900; font-size:22px; letter-spacing:.5px; }
+    .logos{
+      display:flex; justify-content:space-between; align-items:center; padding:22px 16px 16px;
+      background: linear-gradient(90deg,#2a0f12 25%, #0d2b58 75%);
+      min-height:80px;
+    }
+    .logos img{ width:46px; height:46px; object-fit:contain; background:#fff; border-radius:50%; padding:4px; }
+    .title{ padding:10px 12px; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:#0f162c; }
+    .countdown{position:absolute; top:9px; right:10px; padding:2px 8px; background:#111827; border-radius:999px; font-size:.75rem; border:1px solid #1f2937}
+
+    /* --- Preview panel --- */
+    .preview{
+      background:#0b1220; border:1px solid #111827; border-radius:12px; padding:12px;
+      display:flex; gap:12px; color:#e5e7eb;
+    }
+    .preview .thumb{ width:220px; border-radius:10px; overflow:hidden; background:#111; }
+    .preview .thumb img{ width:100%; height:auto; display:block }
+    .preview .meta{ flex:1 }
+    .pill{ display:inline-block; padding:6px 10px; background:#0f162c; border:1px solid #1f2937; border-radius:999px; margin:4px 6px 0 0; font-size:.8rem; }
+    .muted{ color:#94a3b8 }
+    .iframe-box iframe{ width:100%; height:60vh; border:0; border-radius:10px; background:#000 }
+
+    /* ROI + Pricing (unchanged aside from full-height on ROI section) */
+    #roi.section{
+      min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    }
+    .card-simple{ background:var(--card); padding:2rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.05); }
+    .roi-grid { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; max-width: 1000px; width:100% }
+    .roi-grid .card-simple { flex: 1; min-width: 280px; }
+
+    .pricing-section {
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+      padding: 5rem 2rem; text-align: center;
+    }
+    .pricing-card { background:#fff; border-radius: 1rem; padding: 3rem 2rem; max-width: 500px; margin: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 2px solid #3b82f6; }
+    .pricing-card h3 { font-size: 1.8rem; margin-bottom: 1rem; }
+    .pricing-card .price { font-size: 2rem; font-weight: bold; color: #2563eb; margin-bottom: 2rem; }
+    .features { list-style: none; padding:0; margin:0 0 2rem; text-align:left; max-width:300px; margin-inline:auto; }
+    .features li{ margin:.5rem 0 }
+    footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #6b7280; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand"><i class="fa-solid fa-bolt"></i> Stream Cleaner Pro</div>
-      <nav>
-        <a href="#how">How it Works</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#roi">ROI & Profit</a>
-        <a href="#faq">FAQ</a>
-        <a href="/dashboard.html" class="cta">Dashboard</a>
-      </nav>
-    </header>
 
-    <!-- HERO: one-time email-gated mini-tool -->
-    <section class="hero">
+<nav>
+  <div style="font-weight: bold;">Stream Cleaner Pro</div>
+  <div>
+    <a href="#tool">Tool</a>
+    <a href="#solution">Solution</a>
+    <a href="#pricing">Pricing</a>
+    <a href="login.html"><button class="dashboard-btn">Access Dashboard</button></a>
+  </div>
+</nav>
+
+<section class="tool-section" id="tool">
+  <h2 style="margin-bottom:10px"><i class="fas fa-tools"></i> Build Your Stream Embed</h2>
+  <p class="muted" style="margin-top:0">Pick a live event, preview broadcasters, then export a ready file.</p>
+
+  <div class="tool-box">
+    <div class="tool-grid">
+      <!-- left: selection + thumbnails -->
       <div>
-        <h1>Select Any <span style="color:var(--brand)">Live Sports</span></h1>
-        <p class="lead">Pick a stream → insert your ads → download ready-to-host HTML.</p>
-
-        <div class="tool" id="miniTool">
-          <!-- Step 0: email gate -->
-          <div class="step">
-            <label for="email">Enter a valid email</label>
-            <div class="inline">
-              <input id="email" type="email" placeholder="you@example.com" required />
-              <button id="checkBtn" class="cta" type="button"><i class="fa-regular fa-circle-check"></i> Unlock Tool</button>
-            </div>
-            <div id="emailHelp" class="muted" style="margin-top:8px"></div>
-          </div>
-
-          <hr style="border-color:rgba(148,163,184,.15); border-width:0 0 1px; margin:14px 0" />
-
-          <!-- Step 1 -->
-          <div class="step">
-            <div class="inline">
-              <div>
-                <label for="sport">Sport</label>
-                <select id="sport">
-                  <option value="football">Football (Soccer)</option>
-                  <option value="basketball">Basketball</option>
-                  <option value="american_football">American Football</option>
-                  <option value="mma">MMA</option>
-                  <option value="tennis">Tennis</option>
-                  <option value="motorsport">Motorsport</option>
-                  
-                </select>
-              </div>
-             
-            </div>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="step">
-            <label for="adCode">Your ad JavaScript / tags (optional for demo)</label>
-            <textarea id="adCode" rows="4" placeholder="Paste your ad network tag or custom JS here..."></textarea>
-           <div class="tool-actions">
-  <label class="switch">
-    <input id="totalsportekMode" type="checkbox" />
-    <span>Include approved link block (TotalSportek + mirrors)</span>
-  </label>
-  <label class="switch">
-    <input id="broadcastMode" type="checkbox" />
-    <span>Embed broadcaster info (via TheSportsDB)</span>
-  </label>
-  <label class="switch">
-    <input id="freeintertvMode" type="checkbox" />
-    <span>Replace with FreeInterTV iframe</span>
-  </label>
-  <span class="pill">Sandboxed • Lightweight • Clean</span>
-</div>
-
-
-          <!-- Step 3 -->
-          <div class="tool-actions">
-            <button id="cleanBtn" class="cta" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Download</button>
-            <span id="status" class="muted"></span>
-          </div>
+        <div class="tool-step">
+          <h3>Step 1: Select Event</h3>
+          <select id="streamSelect">
+            <option value="">-- Loading today’s events --</option>
+          </select>
         </div>
 
-        <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
-          <span class="badge"><i class="fa-solid fa-shield-halved"></i> JS sandbox</span>
-          <span class="badge"><i class="fa-solid fa-gauge"></i> Lightweight embed output</span>
-          <span class="badge"><i class="fa-solid fa-bullhorn"></i> Bring-your-own ad tags</span>
+        <div class="tool-step">
+          <h3 style="margin-bottom:6px">Quick Picks</h3>
+          <div id="thumbList" class="thumbs"></div>
         </div>
       </div>
 
-      <aside class="right-card">
-        <h3 style="margin:0 0 8px">How it Works</h3>
-        <div class="grid-3">
-          <div class="mini"><h4>1) Select</h4><p>Pick a live stream (any sport) or paste an iframe URL.</p></div>
-         
-          <div class="mini"><h4>2) Monetize</h4><p>Inject your own ads. Export a clean, host-anywhere HTML.</p></div>
-        </div>
-        <div class="pricing section" id="pricing">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
-            <div><div class="muted">Monthly</div><div class="price">$25</div></div>
-            <a href="https://streamcleanerpro.gumroad.com/l/yctnse?wanted=true" target="_blank" class="cta">Subscribe</a>
-          </div>
-          <div class="list">
-            <div class="row"><i class="fa-solid fa-check"></i><div>Unlimited streams (paid plan)</div></div>
-            <div class="row"><i class="fa-solid fa-check"></i><div>Ad tag injection & sandbox</div></div>
-            <div class="row"><i class="fa-solid fa-check"></i><div>Downloadable HTML, host anywhere</div></div>
-            <div class="row"><i class="fa-solid fa-check"></i><div>Approved links block (optional)</div></div>
-          </div>
-        </div>
-      </aside>
-    </section>
+      <!-- right: live preview -->
+      <div>
+        <div id="matchPreview" class="preview" style="display:none"></div>
 
-    <!-- ROI & lead nurturing -->
-    <section class="section" id="roi">
-      <h2>Profit & ROI Calculator</h2>
-      <p class="muted">Estimate how quickly you cover $25/mo and scale. Adjust CTR / CPM to match your ad network.</p>
-
-      <div class="roi-grid">
-        <div class="card">
-          <h3 style="margin-top:0">Assumptions</h3>
-          <div class="inline">
-            <div>
-              <label>Monthly visits</label>
-              <input id="visits" type="number" min="0" value="10000" />
-            </div>
-            <div>
-              <label>Pageviews / visit</label>
-              <input id="ppv" type="number" min="1" value="1.6" step="0.1" />
-            </div>
-          </div>
-          <div class="inline" style="margin-top:10px">
-            <div>
-              <label>Display CPM ($)</label>
-              <input id="cpm" type="number" min="0" value="2.5" step="0.1" />
-            </div>
-            <div>
-              <label>Click-ads CTR (%)</label>
-              <input id="ctr" type="number" min="0" value="0.7" step="0.1" />
-            </div>
-          </div>
-          <div class="inline" style="margin-top:10px">
-            <div>
-              <label>Avg CPC ($)</label>
-              <input id="cpc" type="number" min="0" value="0.15" step="0.01" />
-            </div>
-            <div>
-              <label>Video preroll eCPM ($)</label>
-              <input id="vecpm" type="number" min="0" value="6.0" step="0.1" />
-            </div>
-          </div>
-          <button id="calcBtn" class="cta" style="margin-top:12px" type="button">Recalculate</button>
+        <div class="tool-step" style="margin-top:12px">
+          <h3>Step 2: Insert Your Ad Code</h3>
+          <textarea id="adCode" placeholder="Paste your banner/overlay ad code here"></textarea>
         </div>
 
-        <div class="card">
-          <h3 style="margin-top:0">Projected Revenue</h3>
-          <div id="revDisplay" class="muted">Enter numbers and click Recalculate.</div>
-          <div style="margin-top:12px">
-            <span class="badge"><i class="fa-solid fa-bullseye"></i> Break-even visitors: <span id="beVisitors">—</span></span>
+        <div class="tool-step">
+          <h3>Step 3: Add Optional Links?</h3>
+          <label><input type="checkbox" id="includeLinks"> Include “official/mirrors” block in export</label>
+        </div>
+
+        <div class="tool-step">
+          <h3>Step 4: Download HTML File</h3>
+          <button class="cta-btn" id="downloadTrigger">Download Embed</button>
+          <div class="email-inline" id="emailInline">
+            <p>Enter your email to unlock the one-time free download:</p>
+            <input type="email" id="userEmail" placeholder="you@example.com" />
+            <button id="confirmDownload">Confirm & Download</button>
+            <p class="muted" style="margin:.4rem 0 0">* One free export per email (client-side). Enforce on server for production.</p>
           </div>
         </div>
       </div>
-     
+    </div>
+  </div>
+</section>
 
-<!-- Conversion strip -->
-<div class="section" style="text-align:center; background:#0a1329; border-radius:14px; padding:14px; margin-top:20px; border:1px solid rgba(148,163,184,.18)">
-  <span class="muted">At $25/mo, you break even at</span>
-  <strong style="color:var(--brand); margin-left:6px" id="beStrip">— visitors</strong>
-  <span class="muted">per month.</span>
-</div>
+<section id="solution">
+  <h2 style="border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem;">How It Works</h2>
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
+    <div class="card-simple" style="width:250px; text-align:center">
+      <i class="fas fa-tv" style="font-size:2rem; color:#3b82f6;"></i>
+      <h3>Select Stream</h3>
+      <p>Choose a live event from our feed.</p>
+    </div>
+    <div class="card-simple" style="width:250px; text-align:center">
+      <i class="fas fa-broom" style="font-size:2rem; color:#3b82f6;"></i>
+      <h3>Clean & Inject Ads</h3>
+      <p>We prep the player and add your ad code.</p>
+    </div>
+    <div class="card-simple" style="width:250px; text-align:center">
+      <i class="fas fa-download" style="font-size:2rem; color:#3b82f6;"></i>
+      <h3>Download HTML</h3>
+      <p>Get a ready-to-host HTML file.</p>
+    </div>
+  </div>
+</section>
 
-
-      <div class="section grid-3">
-        <div class="mini">
-          <h4>Why this is profitable</h4>
-          <p>Unlimited Clean High quality streams keep users longer → more pageviews → higher ad yield. You control the ad stack.</p>
+<section class="section" id="roi">
+  <h2>Profit & ROI Calculator</h2>
+  <p class="muted">Estimate how quickly you cover $25/mo and scale.</p>
+  <div class="roi-grid">
+    <div class="card-simple">
+      <h3 style="margin-top:0">Assumptions</h3>
+      <div class="inline" style="display:flex; gap:1rem">
+        <div style="flex:1">
+          <label>Monthly visits</label>
+          <input id="visits" type="number" min="0" value="10000" />
         </div>
-        <div class="mini">
-          <h4>Placement tips</h4>
-          <p>One 728×90 above player, one 300×250 below, and a light preroll. Balance UX & RPM.</p>
-        </div>
-        <div class="mini">
-          <h4>Traffic ideas</h4>
-          <p>Match threads, Discords, Twitter/X trends, Telegram channels, SEO for “where to watch”.</p>
+        <div style="flex:1">
+          <label>Pageviews / visit</label>
+          <input id="ppv" type="number" min="1" value="1.6" step="0.1" />
         </div>
       </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="section" id="faq">
-      <h2>FAQ</h2>
-      <div class="grid-3">
-        <div class="mini">
-          <h4>Can I use any live sport?</h4>
-          <p>Yes—football, basketball, NFL, MMA, tennis, motorsport, and more.</p>
+      <div class="inline" style="display:flex; gap:1rem; margin-top:10px">
+        <div style="flex:1">
+          <label>Display CPM ($)</label>
+          <input id="cpm" type="number" min="0" value="2.5" step="0.1" />
         </div>
-        <div class="mini">
-          <h4>Is the output lightweight?</h4>
-          <p>Yes. We sandbox the iframe and ship a minimal HTML wrapper that you can host anywhere.</p>
-        </div>
-        <div class="mini">
-          <h4>One-time use on this page?</h4>
-          <p>Correct. Enter an email once to try it here. Paid plan unlocks unlimited streams inside the dashboard.</p>
+        <div style="flex:1">
+          <label>Click-ads CTR (%)</label>
+          <input id="ctr" type="number" min="0" value="0.7" step="0.1" />
         </div>
       </div>
-    </section>
-    <section id="pricing" class="pricing-section">
+      <div class="inline" style="display:flex; gap:1rem; margin-top:10px">
+        <div style="flex:1">
+          <label>Avg CPC ($)</label>
+          <input id="cpc" type="number" min="0" value="0.15" step="0.01" />
+        </div>
+        <div style="flex:1">
+          <label>Video preroll eCPM ($)</label>
+          <input id="vecpm" type="number" min="0" value="6.0" step="0.1" />
+        </div>
+      </div>
+      <button id="calcBtn" class="cta-btn" style="margin-top:12px" type="button">Recalculate</button>
+    </div>
+
+    <div class="card-simple">
+      <h3 style="margin-top:0">Projected Revenue</h3>
+      <div id="revDisplay" class="muted">Enter numbers and click Recalculate.</div>
+      <div style="margin-top:12px">
+        <span class="pill"><i class="fa-solid fa-bullseye"></i> Break-even visitors: <span id="beVisitors">—</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="pricing-section">
   <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
   <div class="pricing-card">
     <h3>All-Inclusive Plan</h3>
-    <p class="price">$25/month</p>
+    <p class="price">$35/month</p>
     <ul class="features">
-      <li>✔ Unlimited streams</li>
-      <li>✔ Inject your ad network code</li>
-      <li>✔ Download ready-to-host HTML files</li>
-      
-      <li>✔ One-click clean + export</li>
-      
+      <li>✔ Unlimited iframe cleaning</li>
+      <li>✔ Inject your ad code</li>
+      <li>✔ Download ready HTML</li>
+      <li>✔ Verified stream list</li>
     </ul>
-    <a href="https://streamcleanerpro.gumroad.com/l/yctnse?wanted=true" target="_blank">
+    <a href="https://ko-fi.com/streamcleanerpro/tiers" target="_blank">
       <button>Subscribe Now</button>
     </a>
   </div>
 </section>
 
-    <footer>
-      © <span id="y"></span> Stream Cleaner Pro — Select streams.Place ads.Monetize. Contact transfundersolutions@gmail.com<br/>
-      
-    </footer>
-  </div>
+<footer>&copy; 2025 Stream Cleaner Pro</footer>
 
-  <script>
-  // --- Year footer ---
-  document.getElementById('y').textContent = new Date().getFullYear();
+<script>
+/** ===========================
+ *  ROI calc (unchanged)
+ *  =========================== */
+function calcROI() {
+  const visits = +document.getElementById('visits').value||0;
+  const ppv = +document.getElementById('ppv').value||1;
+  const cpm = +document.getElementById('cpm').value||0;
+  const ctr = (+document.getElementById('ctr').value||0)/100;
+  const cpc = +document.getElementById('cpc').value||0;
+  const vecpm = +document.getElementById('vecpm').value||0;
+  const pageviews = visits*ppv;
+  const displayRev=(pageviews/1000)*cpm;
+  const clickRev=(pageviews*ctr)*cpc;
+  const prerollRev=(pageviews/1000)*vecpm;
+  const total=displayRev+clickRev+prerollRev;
+  const beVisitors = total>0 ? (25/(total/visits)).toFixed(0) : "—";
+  document.getElementById('revDisplay').innerHTML=
+    `Display: $${displayRev.toFixed(2)}<br>Clicks: $${clickRev.toFixed(2)}<br>Video: $${prerollRev.toFixed(2)}<br><hr>
+     Total: <b>$${total.toFixed(2)}</b> (Net: $${(total-25).toFixed(2)})`;
+  document.getElementById('beVisitors').innerText=beVisitors;
+}
+document.getElementById('calcBtn').addEventListener('click', calcROI);
 
-  // --- ROI Calculator ---
-  function calc(){
-    const visits = +document.getElementById('visits').value || 0;
-    const ppv = +document.getElementById('ppv').value || 1;
-    const cpm = +document.getElementById('cpm').value || 0;
-    const ctr = (+document.getElementById('ctr').value || 0) / 100;
-    const cpc = +document.getElementById('cpc').value || 0;
-    const vecpm = +document.getElementById('vecpm').value || 0;
+const API_FOOTBALL_KEY = "3defc483f1msh829f1ba6d765e5bp1644a4jsn9ac4fcde6027"; // replace with your key
+const API_HOST = "api-football-v1.p.rapidapi.com";
 
-    const pageviews = visits * ppv;
-    const displayRev = (pageviews / 1000) * cpm;
-    const clicks = pageviews * ctr;
-    const clickRev = clicks * cpc;
-    const prerollRev = (pageviews / 1000) * vecpm;
+// Example: EPL = league 39, season 2025
+async function fetchFootballFixtures() {
+  // Call Netlify serverless function instead of RapidAPI directly
+  const r = await fetch("/.netlify/functions/fetchFixtures");
+  const data = await r.json();
+  return data.response || [];
+}
 
-    const total = displayRev + clickRev + prerollRev;
-    const txt = `
-      <div>Display Ads (CPM): <strong>$${displayRev.toFixed(2)}</strong></div>
-      <div>Click Ads (CTR×CPC): <strong>$${clickRev.toFixed(2)}</strong></div>
-      <div>Video Preroll (eCPM): <strong>$${prerollRev.toFixed(2)}</strong></div>
-      <hr style="border-color:rgba(148,163,184,.15)"/>
-      <div>Total Monthly: <strong>$${total.toFixed(2)}</strong></div>
-      <div class="muted">Plan cost: $25 → Net: <strong>$${(total - 25).toFixed(2)}</strong></div>
-    `;
-    document.getElementById('revDisplay').innerHTML = txt;
 
-    // Break-even visitors (rough): solve visits where total = 25
-    const a = (ppv/1000)*(cpm + vecpm) + (ppv*ctr*cpc);
-    const be = a > 0 ? Math.ceil(25 / a) : 0;
-    document.getElementById('beVisitors').textContent = be ? be.toLocaleString() : '—';
-  }
-  calc();
-  document.getElementById('calcBtn').addEventListener('click', () => {
-    calc();
-    document.getElementById("beStrip").textContent =
-      document.getElementById("beVisitors").textContent;
-  });
+// Example builder
+async function loadFootball() {
+  const fixtures = await fetchFootballFixtures();
+  const wrap = document.getElementById("thumbList");
+  wrap.innerHTML = "";
 
-  // --- One-time email gate ---
-  let emailApproved = false;
-  document.getElementById('checkBtn').addEventListener('click', async () => {
-    const email = (document.getElementById('email').value || '').trim();
-    const status = document.getElementById('status');
-    if(!email || !/^\S+@\S+\.\S+$/.test(email)){
-      status.textContent = 'Please enter a valid email.';
-      status.style.color = 'var(--warn)';
-      return;
-    }
-    status.textContent = 'Checking…';
-    status.style.color = 'var(--muted)';
-    try{
-      const res = await fetch('/.netlify/functions/check-email', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      if(data.allowed){
-        emailApproved = true;
-        status.textContent = 'Email verified. You can use the tool now.';
-        status.style.color = 'var(--ok)';
-      }else{
-        status.textContent = 'This email already used the one-time tool. Please subscribe for unlimited use.';
-        status.style.color = 'var(--error)';
-      }
-    }catch(e){
-      status.textContent = 'Server error. Please try again.';
-      status.style.color = 'var(--error)';
-    }
-  });
-
-  // --- Live stream loader (new flow) ---
-  let LP_SELECTED = null;
-
-  async function loadLandingStreams(sport='all') {
-    const grid = document.getElementById('lp-streams');
-    grid.innerHTML = 'Loading...';
-    try {
-      const res = await fetch(`/.netlify/functions/get-streams?sport=${sport}&limit=15`);
-      const items = await res.json();
-      grid.innerHTML = '';
-      if (!items.length) {
-        grid.innerHTML = '<p>No streams found for this sport right now.</p>';
-        return;
-      }
-      items.forEach((it, idx) => {
-        const card = document.createElement('div');
-        card.className = 'stream-card';
-        card.innerHTML = `
-          <img src="${it.thumbnail}" alt="${it.title}" />
-          <div class="meta">
-            <div class="title">${it.title}</div>
-            <div class="tags">${it.sport.toUpperCase()} • ${it.source}</div>
-            <button class="select-btn" data-i="${idx}">Select</button>
-          </div>`;
-        grid.appendChild(card);
-      });
-      grid.querySelectorAll('.select-btn').forEach((btn, i) => {
-        btn.addEventListener('click', () => {
-          LP_SELECTED = items[parseInt(btn.dataset.i)];
-          document.getElementById('lp-status').textContent = `Selected: ${LP_SELECTED.title}`;
-        });
-      });
-    } catch {
-      grid.innerHTML = '<p>Error loading streams.</p>';
-    }
-  }
-
-  document.getElementById('lp-sport').addEventListener('change', e => {
-    loadLandingStreams(e.target.value);
-  });
-
-  document.getElementById('lp-download').addEventListener('click', async () => {
-    const email = document.getElementById('email').value.trim();
-    const ad = document.getElementById('lp-ad').value || '';
-    const status = document.getElementById('lp-status');
-
-    if (!emailApproved){
-      status.textContent = 'Please unlock the tool with your email first.';
-      status.style.color = 'var(--warn)';
-      return;
-    }
-    if (!LP_SELECTED) { status.textContent = 'Select a stream first.'; return; }
-
-    status.textContent = 'Processing...';
-
-    const res = await fetch('/.netlify/functions/clean-stream', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        iframeUrl: LP_SELECTED.iframe,
-        adScript: ad,
-        matchName: LP_SELECTED.title
-      })
+  fixtures.forEach((fx, i) => {
+    const home = fx.teams.home;
+    const away = fx.teams.away;
+    const league = fx.league.name;
+    const when = new Date(fx.fixture.date).toLocaleString([], { 
+      month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' 
     });
 
-    if (!res.ok) { status.textContent = 'Failed to generate HTML.'; return; }
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="top"><span>${league}</span><span class="badge-time">• ${when}</span></div>
+      <div class="logos">
+        <img src="${home.logo}" alt="${home.name}">
+        <div class="vsline">VS</div>
+        <img src="${away.logo}" alt="${away.name}">
+      </div>
+      <div class="title">${home.name} vs ${away.name}</div>
+    `;
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = LP_SELECTED.title.replace(/\s+/g,'_') + '.html';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    status.textContent = '✅ Downloaded!';
+    card.addEventListener("click", () => {
+      showPreviewFootball(fx);
+    });
+
+    wrap.appendChild(card);
+  });
+}
+
+
+function showPreviewFootball(fx) {
+  const preview = document.getElementById("matchPreview");
+  preview.style.display = "flex";
+  const home = fx.teams.home;
+  const away = fx.teams.away;
+  const league = fx.league.name;
+  const when = new Date(fx.fixture.date).toLocaleString();
+
+  preview.innerHTML = `
+    <div class="thumb"><img src="${fx.league.logo}" alt="${league}"></div>
+    <div class="meta">
+      <div style="font-weight:700; font-size:1.05rem">${home.name} vs ${away.name}</div>
+      <div class="muted">${league} • ${when}</div>
+      <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+      <div class="iframe-box" style="margin-top:10px">
+        <!-- Replace with your legal embed -->
+        <iframe src="https://t4tv.click/sports/${fx.fixture.id}" allowfullscreen></iframe>
+      </div>
+    </div>
+  `;
+}
+
+
+/** ===========================
+ *  Build catalog + UI
+ *  =========================== */
+let CATALOG = [];
+
+function countdownText(ev){
+  // crude countdown to kickoff if strTimestamp exists
+  if (!ev.strTimestamp) return "Upcoming";
+  const now = Date.now();
+  const start = new Date(ev.strTimestamp).getTime();
+  const diff = start - now;
+  if (diff <= 0) return "Live";
+  const hrs = Math.floor(diff/3.6e6);
+  const mins = Math.floor((diff%3.6e6)/6e4);
+  const secs = Math.floor((diff%6e4)/1000);
+  return `${String(hrs).padStart(2,"0")}:${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+}
+
+async function loadStreams(){
+  const all=[];
+  for (const comp of COMP_LIST){
+    try{
+      const evs = await fetchEventsToday(comp.id);
+      for (const ev of evs) {
+  // Only allow soccer/football (skip if clearly another sport)
+  if (ev.strSport && ev.strSport.toLowerCase() !== "soccer") continue;
+
+  // Defensive: if no teams, skip
+  if (!ev.idHomeTeam || !ev.idAwayTeam) continue;
+
+  const homeBadge = await fetchTeamBadge(ev.idHomeTeam);
+  const awayBadge = await fetchTeamBadge(ev.idAwayTeam);
+  const title = ev.strEvent || `${ev.strHomeTeam||""} vs ${ev.strAwayTeam||""}`.trim();
+  const thumb = ev.strThumb || ev.strPoster || ev.strBanner || FALLBACK_THUMB;
+  const when = fmtLocal(ev.strTimestamp, ev.dateEvent, ev.strTime);
+  let broadcast = [];
+  try { broadcast = await fetchTVForEvent(ev.idEvent); } catch {}
+
+  all.push({
+    idEvent: ev.idEvent,
+    title, league: ev.strLeague || comp.label,
+    when, ts: ev.strTimestamp,
+    home: ev.strHomeTeam, away: ev.strAwayTeam,
+    homeBadge, awayBadge,
+    thumb, broadcasters: broadcast
+  });
+}
+
+
+    
+    }catch(e){ console.warn("Load fail", comp, e); }
+  }
+  CATALOG = all;
+
+  // Populate <select>
+  const sel = $("#streamSelect");
+  sel.innerHTML = `<option value="">-- Choose a live event --</option>`;
+  CATALOG.forEach((it,i)=>{
+    sel.appendChild(el("option",{value:String(i), textContent:`[${it.league}] ${it.title} — ${it.when}`}));
+  });
+  sel.addEventListener("change", ()=> showPreview(parseInt(sel.value,10)));
+
+  // Build thumbnails
+  const wrap = $("#thumbList"); wrap.innerHTML="";
+  CATALOG.forEach((it,i)=>{
+    const card = el("div",{className:"card", title:`${it.title} (${it.when})`});
+    const status = countdownText({strTimestamp: it.ts});
+    card.innerHTML = `
+      <div class="top"><span>Upcoming</span><span class="badge-time">• ${it.when}</span></div>
+      <div class="countdown">${status}</div>
+      <div class="logos">
+        <img src="${it.homeBadge||'https://via.placeholder.com/46?text=H'}" alt="${it.home||'Home'}">
+        <div class="vsline">VS</div>
+        <img src="${it.awayBadge||'https://via.placeholder.com/46?text=A'}" alt="${it.away||'Away'}">
+      </div>
+      <div class="title">${it.title}</div>`;
+    card.addEventListener("click", ()=>{
+      sel.value = String(i);
+      showPreview(i);
+      window.scrollTo({top: document.querySelector('#tool').offsetTop - 20, behavior:'smooth'});
+    });
+    wrap.appendChild(card);
   });
 
-  // initial load
-  loadLandingStreams('all');
-</script>
+  // Auto-select first for preview
+  if (CATALOG.length){ sel.value="0"; showPreview(0); }
+}
 
+function showPreview(idx){
+  const box = $("#matchPreview");
+  box.style.display = "block";
+  box.innerHTML = "";
+  const it = CATALOG[idx]; if (!it) return;
+
+  // broadcaster slug + placeholder player
+  const firstBc = (it.broadcasters && it.broadcasters[0]) || "Broadcast TBA";
+  const bcSlug = slugifyChannel(firstBc);
+  const PLACEHOLDER_PLAYER = `https://your-legal-player.example.com/embed/${bcSlug}`; // replace legally
+
+  const left = el("div",{className:"thumb"});
+  left.innerHTML = `<img src="${it.thumb||FALLBACK_THUMB}" alt="${it.title}">`;
+
+  const right = el("div",{className:"meta"});
+  right.innerHTML = `
+    <div style="font-weight:700; font-size:1.05rem">${it.title}</div>
+    <div class="muted">${it.league} • ${it.when}</div>
+    <div style="margin-top:6px">
+      ${(it.broadcasters?.length? it.broadcasters : ["Broadcaster TBA"]).map(b=>`<span class="pill">${b}</span>`).join("")}
+    </div>
+    <div class="iframe-box" style="margin-top:10px">
+      <!-- Replace src below with your lawful stream provider -->
+      <iframe src="${PLACEHOLDER_PLAYER}" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    </div>
+  `;
+
+  box.appendChild(left); box.appendChild(right);
+}
+
+/** ===========================
+ *  Download flow (email-gated once per email)
+ *  =========================== */
+const MIRROR_LINK_PLACEHOLDERS = [
+  { label: "Totalsportek", url: "https://YOUR-TOTALSPORTEK-LINK.example" },
+  { label: "Mirror 1", url: "https://YOUR-MIRROR-1.example" },
+  { label: "Mirror 2", url: "https://YOUR-MIRROR-2.example" }
+];
+
+function requestEmailGate(){
+  document.getElementById("emailInline").style.display="block";
+}
+function normalizeEmail(e){ return (e||"").trim().toLowerCase(); }
+function hashEmail(e){ let h=0; for(let i=0;i<e.length;i++){ h=((h<<5)-h)+e.charCodeAt(i); h|=0;} return String(h); }
+
+function exportHTML(ev, adCode, includeLinks){
+  const bc = (ev.broadcasters&&ev.broadcasters[0]) || "live-channel";
+  const bcSlug = slugifyChannel(bc);
+  const PLAYER = `https://your-legal-player.example.com/embed/${bcSlug}`; // swap with your legal embed
+
+  let linksHtml = "";
+  if (includeLinks){
+    linksHtml = `
+    <div class="links">
+      <h3>Helpful Links</h3>
+      <ul>
+        ${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}
+      </ul>
+    </div>`;
+  }
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${ev.title} — ${ev.league}</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+.container{max-width:1100px;margin:0 auto;padding:14px}
+.meta{display:flex;gap:12px;align-items:center}
+.meta img{width:140px;border-radius:10px;object-fit:cover}
+.pill{display:inline-block;background:#0f162c;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;margin:3px 6px 0 0;font-size:12px;color:#ddd}
+iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
+.ads{margin:12px auto;max-width:1100px}
+.links a{color:#60a5fa}
+</style></head>
+<body>
+<div class="container">
+  <div class="meta">
+    <img src="${ev.thumb||'https://via.placeholder.com/640x360?text=Event'}" alt="${ev.title}">
+    <div>
+      <div style="font-weight:700;font-size:18px">${ev.title}</div>
+      <div style="opacity:.85">${ev.league} • ${ev.when}</div>
+      <div style="margin-top:6px">
+        ${(ev.broadcasters?.length?ev.broadcasters:["Broadcaster TBA"]).map(b=>`<span class="pill">${b}</span>`).join("")}
+      </div>
+    </div>
+  </div>
+
+  <!-- Replace src with your LAWFUL provider -->
+  <iframe src="${PLAYER}" allowfullscreen referrerpolicy="no-referrer"></iframe>
+
+  <div class="ads">
+    ${adCode || "<!-- (No ad code provided) -->"}
+  </div>
+
+  ${linksHtml}
+</div>
+</body></html>`;
+
+  const blob = new Blob([html],{type:"text/html"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = ev.title.replace(/\s+/g,"_") + ".html";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("downloadTrigger").addEventListener("click", ()=>{
+  // show email gate
+  requestEmailGate();
+});
+
+document.getElementById("confirmDownload").addEventListener("click", ()=>{
+  const emailEl = document.getElementById("userEmail");
+  const sel = document.getElementById("streamSelect");
+  const idx = parseInt(sel.value,10);
+  if (isNaN(idx)){ alert("Please select an event first."); return; }
+
+  const email = normalizeEmail(emailEl.value);
+  if (!/^\S+@\S+\.\S+$/.test(email)){ alert("Please enter a valid email."); return; }
+
+  const KEY = "scp_trial_" + hashEmail(email);
+  if (localStorage.getItem(KEY)){ alert("This email already used the one-time free download on this device."); return; }
+
+  const ev = CATALOG[idx];
+  const ad = document.getElementById("adCode").value || "";
+  const includeLinks = document.getElementById("includeLinks").checked;
+
+  exportHTML(ev, ad, includeLinks);
+
+  // mark as used
+  localStorage.setItem(KEY, "1");
+  document.getElementById("emailInline").style.display="none";
+});
+
+/** init */
+document.addEventListener("DOMContentLoaded", loadStreams);
+</script>
 </body>
 </html>
