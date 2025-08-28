@@ -6,8 +6,8 @@ export async function handler(event, context) {
 
   const API_HOST = "api-football-v1.p.rapidapi.com";
 
-  const today = new Date().toISOString().slice(0, 10);
-  const url = `https://${API_HOST}/v3/fixtures?date=${today}&league=39&season=2025`;
+  
+  const url = "https://v3.football.api-sports.io/fixtures?league=39&season=2024&next=10";
 
   try {
     const r = await fetch(url, {
@@ -34,4 +34,5 @@ export async function handler(event, context) {
     };
   }
 }
+
 
