@@ -275,14 +275,14 @@
   <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
   <div class="pricing-card">
     <h3>All-Inclusive Plan</h3>
-    <p class="price">$25/month</p>
+    <p class="price">$35/month</p>
     <ul class="features">
       <li>✔ Unlimited iframe cleaning</li>
       <li>✔ Inject your ad code</li>
       <li>✔ Download ready HTML</li>
       <li>✔ Verified stream list</li>
     </ul>
-    <a href="https://streamcleanerpro.gumroad.com/l/yctnse?wanted=true" target="_blank">
+    <a href="https://ko-fi.com/streamcleanerpro/tiers" target="_blank">
       <button>Subscribe Now</button>
     </a>
   </div>
@@ -314,25 +314,38 @@ function calcROI() {
 }
 document.getElementById('calcBtn').addEventListener('click', calcROI);
 
-const API_FOOTBALL_KEY = "3defc483f1msh829f1ba6d765e5bp1644a4jsn9ac4fcde6027"; // replace with your key
-const API_HOST = "https://free-api-live-football-data.p.rapidapi.com/football-players-search?search=m";
+const API_FOOTBALL_KEY = "15baf5cd3f86610045f686247288fbe2"; 
+const API_HOST = "v3.football.api-sports.io";
 
 // Example: EPL = league 39, season 2025
 async function fetchFootballFixtures() {
-  // Call Netlify serverless function instead of RapidAPI directly
-  const r = await fetch("/.netlify/functions/fetchFixtures");
+  
+  const url = `https://${API_HOST}/fixtures?league=39&season=2024&next=10`;
+
+
+  const r = await fetch(url, {
+    method: "GET",
+    headers: {
+      "x-apisports-key": API_FOOTBALL_KEY
+    }
+  });
+
   const data = await r.json();
+  console.log("Fixtures Response:", data); // Debugging
   return data.response || [];
 }
 
-
-// Example builder
 async function loadFootball() {
   const fixtures = await fetchFootballFixtures();
   const wrap = document.getElementById("thumbList");
   wrap.innerHTML = "";
 
-  fixtures.forEach((fx, i) => {
+  if (!fixtures.length) {
+    wrap.innerHTML = "<p>No fixtures today</p>";
+    return;
+  }
+
+  fixtures.forEach((fx) => {
     const home = fx.teams.home;
     const away = fx.teams.away;
     const league = fx.league.name;
@@ -360,7 +373,6 @@ async function loadFootball() {
   });
 }
 
-
 function showPreviewFootball(fx) {
   const preview = document.getElementById("matchPreview");
   preview.style.display = "flex";
@@ -382,6 +394,8 @@ function showPreviewFootball(fx) {
     </div>
   `;
 }
+
+window.addEventListener("DOMContentLoaded", loadFootball);
 
 
 /** ===========================
@@ -481,7 +495,7 @@ function showPreview(idx){
   // broadcaster slug + placeholder player
   const firstBc = (it.broadcasters && it.broadcasters[0]) || "Broadcast TBA";
   const bcSlug = slugifyChannel(firstBc);
-  const PLACEHOLDER_PLAYER = `https://t4tv.click/sports/embed/${bcSlug}`; // replace legally
+  const PLACEHOLDER_PLAYER = `https://t4tv.click/sports/${bcSlug}`; // replace legally
 
   const left = el("div",{className:"thumb"});
   left.innerHTML = `<img src="${it.thumb||FALLBACK_THUMB}" alt="${it.title}">`;
@@ -527,7 +541,7 @@ function hashEmail(e){ let h=0; for(let i=0;i<e.length;i++){ h=((h<<5)-h)+e.char
 function exportHTML(ev, adCode, includeLinks){
   const bc = (ev.broadcasters&&ev.broadcasters[0]) || "live-channel";
   const bcSlug = slugifyChannel(bc);
-  const PLAYER = `https://t4tv.click/sports/embed/${bcSlug}`; // swap with your legal embed
+  const PLAYER = `https://t4tv.click/sports/${bcSlug}`; // swap with your legal embed
 
   let linksHtml = "";
   if (includeLinks){
