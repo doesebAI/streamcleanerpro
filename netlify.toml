@@ -1,11 +1,12 @@
 [build]
   publish = "."
-  functions = "netlify/functions"
+  functions = "netlify/function"
 
 [dev]
-  functions = "netlify/functions"
+  functions = "netlify/function"
   publish = "."
 
 [functions]
-directory = "netlify/functions"
+directory = "netlify/function"
+
 
