@@ -1,6 +1,7 @@
-export async function handler(event, context) {
+// netlify/functions/fixtures.js
+exports.handler = async function(event, context) {
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: "Hello from fixtures function!" })
+    body: JSON.stringify({ message: "Hello from CommonJS!" })
   };
-}
+};
