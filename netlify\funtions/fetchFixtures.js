@@ -2,7 +2,8 @@
 import fetch from "node-fetch";
 
 export async function handler(event, context) {
-  const API_KEY = "3defc483f1msh829f1ba6d765e5bp1644a4js"; 
+  const API_KEY = "3defc483f1msh829f1ba6d765e5bp1644a4jsn9ac4fcde6027"; 
+
   const API_HOST = "api-football-v1.p.rapidapi.com";
 
   const today = new Date().toISOString().slice(0, 10);
@@ -33,3 +34,4 @@ export async function handler(event, context) {
     };
   }
 }
+
