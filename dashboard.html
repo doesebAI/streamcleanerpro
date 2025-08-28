@@ -109,8 +109,11 @@
 </section>
 
 <script>
-/* Supabase auth setup */
-const supabase = supabase.createClient("https://rfuilglpyamrjbtkacqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I");
+/* ---------- Supabase Auth Setup ---------- */
+const supabase = supabase.createClient(
+  "https://rfuilglpyamrjbtkacqw.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
+);
 let user = null;
 
 async function initAuth(){
@@ -120,7 +123,7 @@ async function initAuth(){
     document.getElementById("profileEmail").textContent = user.email;
     document.getElementById("supportEmail").value = user.email;
   } else {
-    window.location.href = "/login.html"; // redirect to login
+    window.location.href = "/login.html";
   }
 }
 
@@ -145,7 +148,7 @@ document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
   alert("Profile updated!");
 });
 
-/* Football API and Dashboard */
+/* ---------- Mirror Links ---------- */
 const MIRROR_LINK_PLACEHOLDERS = [
   { label: "StreamEast", url: "https://www.streameast100.com/" },
   { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
@@ -162,30 +165,47 @@ const MIRROR_LINK_PLACEHOLDERS = [
 let footballFixtures = [];
 let selectedFixture = null;
 
+/* ---------- Fetch Fixtures from Netlify Function ---------- */
 async function fetchFootballFixtures(){
-  const res = await fetch("https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all", {
-    headers:{
-      "X-RapidAPI-Key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I",
-      "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"
-    }
-  });
-  const data = await res.json();
-  footballFixtures = data.response || [];
-  populateDropdown();
+  try {
+    const res = await fetch("https://streamcleanerpro.netlify.app/.netlify/functions/fixtures");
+    const data = await res.json();
+    footballFixtures = data || [];
+    populateDropdown();
+  } catch(e){
+    console.error("Error fetching fixtures:", e);
+    footballFixtures = [];
+    populateDropdown();
+  }
 }
 
+/* ---------- Populate Dropdown ---------- */
 function populateDropdown(){
   const sel = document.getElementById("streamSelect");
   sel.innerHTML = `<option value="">-- Choose a match --</option>`;
-  footballFixtures.forEach((fx,i)=>{
+  
+  if(!footballFixtures.length){
+    sel.innerHTML = `<option>No fixtures today</option>`;
+    return;
+  }
+
+  footballFixtures.forEach((fx, i)=>{
     const opt = document.createElement("option");
     opt.value = i;
     opt.textContent = `${fx.teams.home.name} vs ${fx.teams.away.name} • ${new Date(fx.fixture.date).toLocaleString()}`;
     sel.appendChild(opt);
   });
-  sel.addEventListener("change", ()=> showPreviewFootball(sel.value));
+
+  selectedFixture = footballFixtures[0];
+  showPreviewFootball(0);
+
+  sel.addEventListener("change", ()=>{
+    const idx = sel.value;
+    showPreviewFootball(idx);
+  });
 }
 
+/* ---------- Show Preview ---------- */
 function showPreviewFootball(idx){
   const fx = footballFixtures[idx];
   if(!fx) return;
@@ -200,7 +220,7 @@ function showPreviewFootball(idx){
 
   const right = document.createElement("div");
   right.className="meta";
-  const playerEmbed = `https://your-iptv-provider/${fx.fixture.id}`;
+  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
   right.innerHTML = `
     <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
     <div class="muted">${new Date(fx.fixture.date).toLocaleString()}</div>
@@ -209,11 +229,12 @@ function showPreviewFootball(idx){
       <iframe src="${playerEmbed}" allowfullscreen></iframe>
     </div>
   `;
+
   box.appendChild(left);
   box.appendChild(right);
 }
 
-/* Export HTML */
+/* ---------- Export HTML ---------- */
 function exportHTML(fx, adCode, includeLinks){
   const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
   const linksBlock = includeLinks
@@ -254,7 +275,7 @@ iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-/* Download button */
+/* ---------- Download Button ---------- */
 document.getElementById("downloadBtn").addEventListener("click", ()=>{
   if(!selectedFixture) return alert("Select a match first.");
   const include = document.getElementById("includeLinks").checked;
@@ -263,11 +284,12 @@ document.getElementById("downloadBtn").addEventListener("click", ()=>{
   document.getElementById("fileStatus").textContent = "✅ File downloaded.";
 });
 
-/* Init */
+/* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
   initAuth();
   fetchFootballFixtures();
 });
 </script>
+
 </body>
 </html>
