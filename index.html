@@ -304,6 +304,7 @@
 <footer>&copy; 2025 Stream Cleaner Pro</footer>
 
 <script>
+
 /** ===========================
  * ROI Calculator (unchanged)
  * =========================== */
@@ -330,20 +331,52 @@ document.getElementById('calcBtn').addEventListener('click', calcROI);
 /** ===========================
  * Football Fixtures (via proxy)
  * =========================== */
+let footballFixtures = [];
+let BROADCAST_EVENTS = [];
+
 async function fetchFootballFixtures() {
   try {
     const r = await fetch("/.netlify/functions/fixtures"); 
     const data = await r.json();
-    console.log("Fixtures Response:", data);
-    return data.response || [];
+    footballFixtures = data.response || [];
+    return footballFixtures;
   } catch (err) {
     console.error("Fixture fetch failed:", err);
+    footballFixtures = [];
     return [];
   }
 }
 
+async function fetchBroadcasts() {
+  try {
+    const r = await fetch("/.netlify/functions/broadcasts");
+    const data = await r.json();
+    BROADCAST_EVENTS = data.events || [];
+  } catch (err) {
+    console.error("Broadcast fetch failed:", err);
+    BROADCAST_EVENTS = [];
+  }
+}
+
+function getBroadcastForFixture(fx) {
+  const fxDate = new Date(fx.fixture.date).toDateString();
+  const homeName = fx.teams.home.name.toLowerCase();
+  const awayName = fx.teams.away.name.toLowerCase();
+
+  const match = BROADCAST_EVENTS.find(ev => {
+    const evDate = new Date(ev.dateEvent || ev.strDate).toDateString();
+    const evHome = (ev.strHomeTeam || "").toLowerCase();
+    const evAway = (ev.strAwayTeam || "").toLowerCase();
+    return evDate === fxDate && evHome === homeName && evAway === awayName;
+  });
+
+  return match?.strTVStation || "TBA";
+}
+
 async function loadFootball() {
   const fixtures = await fetchFootballFixtures();
+  await fetchBroadcasts();
+
   const wrap = document.getElementById("thumbList");
   wrap.innerHTML = "";
   if (!fixtures.length) { wrap.innerHTML = "<p>No fixtures today</p>"; return; }
@@ -375,46 +408,40 @@ function showPreviewFootball(fx) {
   const away = fx.teams.away;
   const league = fx.league.name;
   const when = new Date(fx.fixture.date).toLocaleString();
+  const broadcaster = getBroadcastForFixture(fx);
   preview.innerHTML = `
     <div class="thumb"><img src="${fx.league.logo}" alt="${league}"></div>
     <div class="meta">
       <div style="font-weight:700; font-size:1.05rem">${home.name} vs ${away.name}</div>
       <div class="muted">${league} • ${when}</div>
-      <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+      <div style="margin-top:6px"><span class="pill">Broadcaster: ${broadcaster}</span></div>
       <div class="iframe-box" style="margin-top:10px">
         <iframe src="https://t4tv.click/sports/${fx.fixture.id}" allowfullscreen></iframe>
       </div>
     </div>
   `;
 }
-window.addEventListener("DOMContentLoaded", loadFootball);
 
 /** ===========================
  * Dashboard-style Thumbnails & Preview
  * =========================== */
 let CATALOG = [];
 
-async function fetchCatalog() {
-  // For now, use same fixtures as catalog source
-  const fixtures = await fetchFootballFixtures();
-  CATALOG = fixtures;
-  return fixtures;
-}
-
 async function loadCatalog() {
-  const list = document.getElementById("thumbList");
-  list.innerHTML = "<p>Loading...</p>";
-  const data = await fetchCatalog();
-  list.innerHTML = "";
-  if (!data.length) {
-    list.innerHTML = "<p>No matches found.</p>";
-    return;
-  }
-  data.forEach(item => {
-    const home = item.teams.home;
-    const away = item.teams.away;
+  const fixtures = await fetchFootballFixtures();
+  await fetchBroadcasts();
+  CATALOG = fixtures;
+
+  const wrap = document.getElementById("thumbList");
+  wrap.innerHTML = "";
+  if (!fixtures.length) { wrap.innerHTML = "<p>No matches found</p>"; return; }
+
+  fixtures.forEach((fx, i) => {
+    const home = fx.teams.home;
+    const away = fx.teams.away;
     const card = document.createElement("div");
     card.className = "card";
+    const broadcaster = getBroadcastForFixture(fx);
     card.innerHTML = `
       <div class="logos">
         <img src="${home.logo}" alt="${home.name}">
@@ -422,9 +449,10 @@ async function loadCatalog() {
         <img src="${away.logo}" alt="${away.name}">
       </div>
       <div class="title">${home.name} vs ${away.name}</div>
+      <div style="margin-top:4px;font-size:12px">Broadcaster: ${broadcaster}</div>
     `;
-    card.addEventListener("click", () => showPreviewFootball(item));
-    list.appendChild(card);
+    card.addEventListener("click", () => showPreviewFootball(fx));
+    wrap.appendChild(card);
   });
 }
 
@@ -440,7 +468,14 @@ document.addEventListener("click", (e) => {
     closePreview();
   }
 });
+
+/** ===== Init ===== */
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadFootball(); // landing page
+  await loadCatalog();  // dashboard thumbnails
+});
 </script>
+
 
 </body>
 </html>
