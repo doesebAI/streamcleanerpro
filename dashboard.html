@@ -108,14 +108,17 @@
   </main>
 </section>
 
-<script>
-/* ---------- Supabase Auth Setup ---------- */
-const supabase = supabase.createClient(
-  "https://rfuilglpyamrjbtkacqw.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
-);
+<script type="module">
+/* ---------- Supabase Setup ---------- */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabaseUrl = "https://rfuilglpyamrjbtkacqw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 let user = null;
 
+/* ---------- Auth ---------- */
 async function initAuth(){
   const { data } = await supabase.auth.getSession();
   user = data.session?.user || null;
@@ -165,11 +168,15 @@ const MIRROR_LINK_PLACEHOLDERS = [
 let footballFixtures = [];
 let selectedFixture = null;
 
-/* ---------- Fetch Fixtures from Netlify Function ---------- */
+/* ---------- Fetch Fixtures from Supabase ---------- */
 async function fetchFootballFixtures(){
   try {
-    const res = await fetch("https://streamcleanerpro.netlify.app/.netlify/functions/fixtures");
-    const data = await res.json();
+    const { data, error } = await supabase
+      .from("football_fixtures")   // 👈 table in Supabase
+      .select("*")
+      .order("fixture_date", { ascending: true });
+
+    if(error) throw error;
     footballFixtures = data || [];
     populateDropdown();
   } catch(e){
@@ -192,7 +199,7 @@ function populateDropdown(){
   footballFixtures.forEach((fx, i)=>{
     const opt = document.createElement("option");
     opt.value = i;
-    opt.textContent = `${fx.teams.home.name} vs ${fx.teams.away.name} • ${new Date(fx.fixture.date).toLocaleString()}`;
+    opt.textContent = `${fx.home_team} vs ${fx.away_team} • ${new Date(fx.fixture_date).toLocaleString()}`;
     sel.appendChild(opt);
   });
 
@@ -216,15 +223,15 @@ function showPreviewFootball(idx){
 
   const left = document.createElement("div");
   left.className="thumb";
-  left.innerHTML = `<img src="${fx.league.logo}" alt="${fx.league.name}">`;
+  left.innerHTML = `<img src="${fx.league_logo}" alt="${fx.league_name}">`;
 
   const right = document.createElement("div");
   right.className="meta";
-  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
+  const playerEmbed = `https://t4tv.click/sports/${fx.fixture_id}`;
   right.innerHTML = `
-    <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
-    <div class="muted">${new Date(fx.fixture.date).toLocaleString()}</div>
-    <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+    <div style="font-weight:700">${fx.home_team} vs ${fx.away_team}</div>
+    <div class="muted">${new Date(fx.fixture_date).toLocaleString()}</div>
+    <div style="margin-top:6px"><span class="pill">Broadcaster: ${fx.broadcaster || "TBA"}</span></div>
     <div class="iframe-box" style="margin-top:10px">
       <iframe src="${playerEmbed}" allowfullscreen></iframe>
     </div>
@@ -236,14 +243,14 @@ function showPreviewFootball(idx){
 
 /* ---------- Export HTML ---------- */
 function exportHTML(fx, adCode, includeLinks){
-  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
+  const playerEmbed = `https://t4tv.click/sports/${fx.fixture_id}`;
   const linksBlock = includeLinks
     ? `<div class="links"><ul>${MIRROR_LINK_PLACEHOLDERS.map(l => `<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}</ul></div>`
     : "";
 
   const html = `<!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${fx.teams.home.name} vs ${fx.teams.away.name}</title>
+<title>${fx.home_team} vs ${fx.away_team}</title>
 <style>
 body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto}
 .container{max-width:1100px;margin:0 auto;padding:14px}
@@ -255,11 +262,11 @@ iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
 </style></head><body>
 <div class="container">
   <div class="meta">
-    <img src="${fx.league.logo}" alt="${fx.league.name}">
+    <img src="${fx.league_logo}" alt="${fx.league_name}">
     <div>
-      <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
-      <div style="opacity:.85">${new Date(fx.fixture.date).toLocaleString()}</div>
-      <div style="margin-top:6px"><span class="pill">Broadcaster: TBA</span></div>
+      <div style="font-weight:700">${fx.home_team} vs ${fx.away_team}</div>
+      <div style="opacity:.85">${new Date(fx.fixture_date).toLocaleString()}</div>
+      <div style="margin-top:6px"><span class="pill">Broadcaster: ${fx.broadcaster || "TBA"}</span></div>
     </div>
   </div>
   <iframe src="${playerEmbed}" allowfullscreen></iframe>
@@ -271,7 +278,7 @@ iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${fx.teams.home.name.replace(/\s+/g,"_")}_vs_${fx.teams.away.name.replace(/\s+/g,"_")}.html`;
+  a.download = `${fx.home_team.replace(/\s+/g,"_")}_vs_${fx.away_team.replace(/\s+/g,"_")}.html`;
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
@@ -290,6 +297,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   fetchFootballFixtures();
 });
 </script>
+
 
 </body>
 </html>
