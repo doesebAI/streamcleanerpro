@@ -109,7 +109,7 @@
 </section>
 
 <script>
-/* ---------- Supabase Auth Setup ---------- */
+/* ---------- Supabase Auth Setup (kept as you provided) ---------- */
 const supabase = supabase.createClient(
   "https://rfuilglpyamrjbtkacqw.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
@@ -117,13 +117,17 @@ const supabase = supabase.createClient(
 let user = null;
 
 async function initAuth() {
-  const { data } = await supabase.auth.getSession();
-  user = data.session?.user || null;
-  if(user){
-    document.getElementById("profileEmail").textContent = user.email;
-    document.getElementById("supportEmail").value = user.email;
-  } else {
-    window.location.href = "/login.html";
+  try {
+    const { data } = await supabase.auth.getSession();
+    user = data.session?.user || null;
+    if(user){
+      document.getElementById("profileEmail").textContent = user.email;
+      document.getElementById("supportEmail").value = user.email;
+    } else {
+      window.location.href = "/login.html";
+    }
+  } catch(e) {
+    console.warn("supabase init error", e);
   }
 }
 
@@ -148,7 +152,7 @@ document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
   alert("Profile updated!");
 });
 
-/* ---------- Mirror Links ---------- */
+/* ---------- Mirror Links (kept) ---------- */
 const MIRROR_LINK_PLACEHOLDERS = [
   { label: "StreamEast", url: "https://www.streameast100.com/" },
   { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
@@ -162,190 +166,244 @@ const MIRROR_LINK_PLACEHOLDERS = [
   { label: "Hoofoot", url: "https://hufoot.com/" }
 ];
 
-/* ---------- Fixtures & Broadcasts ---------- */
-let footballFixtures = [];
-let broadcastEvents = [];
-let selectedFixture = null;
+/* ---------- Google Sheets config ---------- */
+const GOOGLE_SHEET_ID = "1jN1uCIr9xmzFF81AIn398Oj0N7y3CeoZBHOL_th6jMA";
+const TEAM_SHEETS = [
+  "ChelseaFixtures",
+  "ArsenalFixtures",
+  "ManUnitedFixtures",
+  "ManCityFixtures",
+  "SpursFixtures",
+  "LiverpoolFixtures",
+  
+  "RealMadridFixtures",
+  "BarcelonaFixtures",
+  "BayernFixtures",
+ 
+];
+const IFRAME_SHEET = "IframeUrls";
+const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
+const REVEAL_BEFORE_MS = 30 * 60 * 1000;
 
-/* ---------- Fetch fixtures via proxy ---------- */
-async function fetchFootballFixtures() {
-  try {
-    const res = await fetch("/.netlify/functions/fixtures");
-    const data = await res.json();
-    footballFixtures = data.response || [];
-    return footballFixtures;
-  } catch(e) {
-    console.error("Error fetching fixtures:", e);
-    footballFixtures = [];
-    return [];
-  }
-}
-
-/* ---------- Fetch broadcasts via proxy ---------- */
-async function fetchBroadcasts() {
-  try {
-    const res = await fetch("/.netlify/functions/broadcasts");
-    const data = await res.json();
-    broadcastEvents = data.events || [];
-  } catch(e) {
-    console.error("Error fetching broadcasts:", e);
-    broadcastEvents = [];
-  }
-}
-
-/* ---------- Map fixture -> broadcaster ---------- */
-function getBroadcastForFixture(fx) {
-  const fxDate = new Date(fx.fixture.date).toDateString();
-  const homeName = fx.teams.home.name.toLowerCase();
-  const awayName = fx.teams.away.name.toLowerCase();
-
-  const match = broadcastEvents.find(ev => {
-    const evDate = new Date(ev.dateEvent || ev.strDate).toDateString();
-    const evHome = (ev.strHomeTeam || "").toLowerCase();
-    const evAway = (ev.strAwayTeam || "").toLowerCase();
-    return evDate === fxDate && evHome === homeName && evAway === awayName;
+/* ---------- GViz helpers (same as landing) ---------- */
+async function fetchGvizSheet(sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(`Failed to fetch sheet ${sheetName}: ${res.status}`);
+  const text = await res.text();
+  const jsonText = text.replace(/^[^\(]*\(/, "").replace(/\);?$/, "");
+  const parsed = JSON.parse(jsonText);
+  const cols = (parsed.table.cols || []).map(c => (c.label || c.id || "").toString().trim());
+  const rows = (parsed.table.rows || []).map(r => {
+    const obj = {};
+    (r.c || []).forEach((cell, i) => { obj[cols[i] || `c${i}`] = cell ? cell.v : ""; });
+    return obj;
   });
-
-  return match?.strTVStation || "TBA";
+  return { cols, rows };
 }
 
-/* ---------- Populate dropdown ---------- */
-function populateDropdown() {
-  const sel = document.getElementById("streamSelect");
-  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
+const HEADER_KEYWORDS = {
+  home: ['home','home team','teamhome','team_home','home_team','homeclub','home_name'],
+  away: ['away','away team','teamaway','team_away','away_team','awayclub','away_name'],
+  date: ['date','kickoff','kickoff_time','match_date','fixture_date','datetime','utcdate','dateevent','time'],
+  fixturekey: ['fixturekey','fixture_key','match_id','matchid','id','idevent','fixtureid'],
+  iframe: ['iframeurl','iframe','iframe_url','embed','embed_url','url','embedurl','link'],
+  thumb: ['thumb','thumbnail','thumburl','poster','image','logo','thumb_url'],
+  league: ['league','competition','competition name','tournament','comp'],
+  tv: ['tv','broadcaster','tvstation','channel','station','strtvstation','strchannel','broadcast']
+};
 
-  if(!footballFixtures.length){
-    sel.innerHTML = `<option>No fixtures today</option>`;
+function findHeaderKey(cols, keywordList){
+  const lc = cols.map(c=> (c||'').toString().toLowerCase().trim());
+  for(const k of keywordList){
+    const ki = k.toLowerCase();
+    const idx = lc.findIndex(h => h === ki);
+    if(idx >= 0) return cols[idx];
+  }
+  for(const k of keywordList){
+    const ki = k.toLowerCase();
+    const idx = lc.findIndex(h => h.includes(ki));
+    if(idx >= 0) return cols[idx];
+  }
+  return null;
+}
+
+function mapColumns(cols){
+  return {
+    home: findHeaderKey(cols, HEADER_KEYWORDS.home),
+    away: findHeaderKey(cols, HEADER_KEYWORDS.away),
+    date: findHeaderKey(cols, HEADER_KEYWORDS.date),
+    fixturekey: findHeaderKey(cols, HEADER_KEYWORDS.fixturekey),
+    iframe: findHeaderKey(cols, HEADER_KEYWORDS.iframe),
+    thumb: findHeaderKey(cols, HEADER_KEYWORDS.thumb),
+    league: findHeaderKey(cols, HEADER_KEYWORDS.league),
+    tv: findHeaderKey(cols, HEADER_KEYWORDS.tv)
+  };
+}
+
+function normalizeDateVal(v){
+  if(!v) return null;
+  const d = new Date(v);
+  if(!isNaN(d)) return d.toISOString();
+  const p = Date.parse(String(v).replace(/\s*\(.*\)/,'')); 
+  return isNaN(p) ? null : new Date(p).toISOString();
+}
+
+function makeFixtureKey(row, colMap){
+  if(colMap.fixturekey && row[colMap.fixturekey]) return String(row[colMap.fixturekey]);
+  const dateIso = normalizeDateVal(colMap.date ? row[colMap.date] : row.Date || row.date || '');
+  const dpart = dateIso ? dateIso.slice(0,10) : 'nodate';
+  const home = String(row[colMap.home]||row['Home']||'').replace(/\s+/g,'').toLowerCase();
+  const away = String(row[colMap.away]||row['Away']||'').replace(/\s+/g,'').toLowerCase();
+  return `${dpart}-${home}-vs-${away}`;
+}
+
+function normalizeFixtureRow(row, cols){
+  const map = mapColumns(cols);
+  const iso = normalizeDateVal(map.date ? row[map.date] : (row.Date||row.date||''));
+  return {
+    raw: row,
+    FixtureKey: makeFixtureKey(row, map),
+    home: { name: String(row[map.home]||row['Home']||'') },
+    away: { name: String(row[map.away]||row['Away']||'') },
+    league: String(row[map.league]||row['Competition']||''),
+    thumb: String(row[map.thumb]||row['Thumb']||PLACEHOLDER_IFRAME),
+    dateISO: iso,
+    kickoffMs: iso ? new Date(iso).getTime() : null,
+    title: `${row[map.home]||row['Home']||''} vs ${row[map.away]||row['Away']||''}`
+  };
+}
+
+function normalizeIframeRows(rows, cols){
+  const map = mapColumns(cols);
+  const iframeCol = map.iframe || findHeaderKey(cols, ['url','link']);
+  const fixtureKeyCol = map.fixturekey || findHeaderKey(cols, HEADER_KEYWORDS.fixturekey);
+  return rows.map(r => ({ raw: r, FixtureKey: fixtureKeyCol ? String(r[fixtureKeyCol]) : null, iframeUrl: iframeCol ? String(r[iframeCol]) : null }));
+}
+
+function matchIframeForFixture(fx, iframeRows){
+  if(!iframeRows || !iframeRows.length) return null;
+  if(fx.FixtureKey){
+    const exact = iframeRows.find(ir => ir.FixtureKey && String(ir.FixtureKey) === String(fx.FixtureKey));
+    if(exact) return exact;
+  }
+  const fxDate = fx.dateISO ? new Date(fx.dateISO).toDateString() : null;
+  const hn = fx.home.name.toLowerCase();
+  const an = fx.away.name.toLowerCase();
+  return iframeRows.find(ir => {
+    const vals = Object.values(ir.raw).map(v => (v||'').toString().toLowerCase());
+    const rowDateVal = ir.raw.Date || ir.raw.date || ir.raw.dateEvent || ir.raw.kickoff;
+    if(rowDateVal && fxDate){
+      const p = normalizeDateVal(rowDateVal);
+      if(!p) return false;
+      if(new Date(p).toDateString() !== fxDate) return false;
+    }
+    const hasHome = vals.some(v => hn && v.includes(hn));
+    const hasAway = vals.some(v => an && v.includes(an));
+    return (hasHome && hasAway) || (hasHome || hasAway);
+  }) || null;
+}
+
+function shouldReveal(fx){
+  if(!fx.kickoffMs) return false;
+  return Date.now() >= (fx.kickoffMs - REVEAL_BEFORE_MS);
+}
+
+/* ---------- load dashboard sheets ---------- */
+async function loadDashboardFromTeamSheets(){
+  const sheetPromises = TEAM_SHEETS.map(name => fetchGvizSheet(name).then(s=>({name,cols:s.cols,rows:s.rows})).catch(e=>{ console.warn('sheet fail', name, e); return {name,cols:[],rows:[]}; }));
+  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(e => { console.warn('iframe sheet fail', e); return {cols:[],rows:[]}; });
+  const results = await Promise.all(sheetPromises);
+  const fixtures = [];
+  results.forEach(res => { if(res.rows && res.rows.length) res.rows.forEach(r => fixtures.push(normalizeFixtureRow(r, res.cols))); });
+  const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
+  fixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
+  renderDashboardUI(fixtures, iframeRows);
+  return { fixtures, iframeRows };
+}
+
+/* ---------- render dashboard UI ---------- */
+let selectedFixture = null;
+function renderDashboardUI(fixtures, iframeRows){
+  const sel = document.getElementById('streamSelect');
+  const wrap = document.getElementById('thumbList');
+  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
+  wrap.innerHTML = '';
+
+  if(!fixtures.length){
+    sel.innerHTML = `<option value="">No fixtures</option>`;
+    wrap.innerHTML = '<p>No fixtures found</p>';
     return;
   }
 
-  footballFixtures.forEach((fx, i)=>{
-    const opt = document.createElement("option");
-    const broadcaster = getBroadcastForFixture(fx);
-    opt.value = i;
-    opt.textContent = `[${broadcaster}] ${fx.teams.home.name} vs ${fx.teams.away.name} • ${new Date(fx.fixture.date).toLocaleString()}`;
+  fixtures.forEach((fx,i) => {
+    const opt = document.createElement('option'); opt.value = i;
+    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleString()}` : '');
     sel.appendChild(opt);
-  });
 
-  selectedFixture = footballFixtures[0];
-  showPreviewFootball(0);
-
-  sel.addEventListener("change", ()=>{
-    const idx = sel.value;
-    showPreviewFootball(idx);
-  });
-}
-
-/* ---------- Show preview ---------- */
-function showPreviewFootball(idx) {
-  const fx = footballFixtures[idx];
-  if(!fx) return;
-  selectedFixture = fx;
-
-  const box = document.getElementById("matchPreview");
-  box.style.display = "flex"; box.innerHTML = "";
-
-  const left = document.createElement("div");
-  left.className = "thumb";
-  left.innerHTML = `<img src="${fx.league.logo}" alt="${fx.league.name}">`;
-
-  const right = document.createElement("div");
-  right.className = "meta";
-  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
-  const broadcaster = getBroadcastForFixture(fx);
-  right.innerHTML = `
-    <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
-    <div class="muted">${new Date(fx.fixture.date).toLocaleString()}</div>
-    <div style="margin-top:6px"><span class="pill">Broadcaster: ${broadcaster}</span></div>
-    <div class="iframe-box" style="margin-top:10px">
-      <iframe src="${playerEmbed}" allowfullscreen></iframe>
-    </div>
-  `;
-
-  box.appendChild(left);
-  box.appendChild(right);
-}
-
-/* ---------- Build thumbnails ---------- */
-function buildThumbnails() {
-  const wrap = document.getElementById("thumbList");
-  wrap.innerHTML = "";
-  footballFixtures.forEach((fx, i)=>{
-    const card = document.createElement("div");
-    card.className = "card";
-    const broadcaster = getBroadcastForFixture(fx);
+    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'TBA';
+    const matchIframe = matchIframeForFixture(fx, iframeRows);
+    const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
+      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
       <div class="logos">
-        <img src="${fx.teams.home.logo}" alt="${fx.teams.home.name}">
+        <img src="${fx.home.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
         <div class="vsline">VS</div>
-        <img src="${fx.teams.away.logo}" alt="${fx.teams.away.name}">
+        <img src="${fx.away.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
       </div>
-      <div class="title">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
-      <div style="font-size:12px;margin-top:2px">Broadcast: ${broadcaster}</div>
+      <div class="title">${fx.home.name} vs ${fx.away.name}</div>
+      <div style="margin-top:6px;font-size:12px">Iframe: ${matchIframe && matchIframe.iframeUrl ? 'Yes' : 'No'}</div>
     `;
-    card.addEventListener("click", () => showPreviewFootball(i));
+    card.addEventListener('click', ()=> { sel.value = i; showDashboardPreview(fx, iframeRows); });
     wrap.appendChild(card);
   });
+
+  sel.addEventListener('change', ()=> {
+    const idx = parseInt(sel.value,10);
+    if(!isNaN(idx)) showDashboardPreview(fixtures[idx], iframeRows);
+  });
+  showDashboardPreview(fixtures[0], iframeRows);
 }
 
-/* ---------- Export HTML ---------- */
-function exportHTML(fx, adCode, includeLinks){
-  const playerEmbed = `https://t4tv.click/sports/${fx.fixture.id}`;
-  const broadcaster = getBroadcastForFixture(fx);
-  const linksBlock = includeLinks
-    ? `<div class="links"><ul>${MIRROR_LINK_PLACEHOLDERS.map(l => `<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join("")}</ul></div>`
-    : "";
-
-  const html = `<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${fx.teams.home.name} vs ${fx.teams.away.name}</title>
-<style>
-body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto}
-.container{max-width:1100px;margin:0 auto;padding:14px}
-.meta{display:flex;gap:12px;align-items:center}
-.meta img{width:140px;border-radius:10px}
-.pill{display:inline-block;background:#0f162c;padding:6px 10px;border-radius:999px;border:1px solid #1f2937;margin:3px 6px 0 0;font-size:12px;color:#ddd}
-iframe{width:100%;height:70vh;border:0;border-radius:12px;background:#111}
-.links a{color:#60a5fa;text-decoration:none}
-</style></head><body>
-<div class="container">
-  <div class="meta">
-    <img src="${fx.league.logo}" alt="${fx.league.name}">
-    <div>
-      <div style="font-weight:700">${fx.teams.home.name} vs ${fx.teams.away.name}</div>
-      <div style="opacity:.85">${new Date(fx.fixture.date).toLocaleString()}</div>
-      <div style="margin-top:6px"><span class="pill">Broadcaster: ${broadcaster}</span></div>
+function showDashboardPreview(fx, iframeRows){
+  const preview = document.getElementById('matchPreview'); preview.style.display = 'block';
+  const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
+  const matchIframe = matchIframeForFixture(fx, iframeRows);
+  const iframeToUse = (shouldReveal(fx) && matchIframe && matchIframe.iframeUrl) ? matchIframe.iframeUrl : PLACEHOLDER_IFRAME;
+  const availText = shouldReveal(fx) ? 'Live stream (if provided)' : 'Real live streams will be available 30 mins before start';
+  preview.innerHTML = `
+    <div class="thumb"><img src="${fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.title}"></div>
+    <div class="meta">
+      <div style="font-weight:700">${fx.home.name} vs ${fx.away.name}</div>
+      <div class="muted">${fx.league} • ${when}</div>
+      <div style="margin-top:6px"><span class="pill">${availText}</span></div>
+      <div class="iframe-box" style="margin-top:10px"><iframe src="${iframeToUse}" allowfullscreen></iframe></div>
     </div>
-  </div>
-  <iframe src="${playerEmbed}" allowfullscreen></iframe>
-  <div class="ads">${adCode || "<!-- No ads provided -->"}</div>
-  ${linksBlock}
-</div></body></html>`;
-
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${fx.teams.home.name.replace(/\s+/g,"_")}_vs_${fx.teams.away.name.replace(/\s+/g,"_")}.html`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  `;
+  selectedFixture = fx;
 }
 
-/* ---------- Download Button ---------- */
-document.getElementById("downloadBtn").addEventListener("click", ()=>{
-  if(!selectedFixture) return alert("Select a match first.");
-  const include = document.getElementById("includeLinks").checked;
-  const adCode = document.getElementById("adCode").value || "";
-  exportHTML(selectedFixture, adCode, include);
-  document.getElementById("fileStatus").textContent = "✅ File downloaded.";
+/* ---------- Export (download) ---------- */
+document.getElementById('downloadBtn')?.addEventListener('click', async ()=> {
+  if(!selectedFixture) return alert('Select a match first.');
+  const include = document.getElementById('includeLinks')?.checked || false;
+  const adCode = document.getElementById('adCode')?.value || '';
+  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(()=>({cols:[],rows:[]}));
+  const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
+  const matched = matchIframeForFixture(selectedFixture, iframeRows);
+  const iframeToUse = (shouldReveal(selectedFixture) && matched && matched.iframeUrl) ? matched.iframeUrl : PLACEHOLDER_IFRAME;
+  const linksBlock = include ? `<div class="links"><ul>${(window.MIRROR_LINK_PLACEHOLDERS||[]).map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${selectedFixture.home.name} vs ${selectedFixture.away.name}</h1><iframe src="${iframeToUse}" style="width:100%;height:70vh;border:0"></iframe><div>${adCode}</div>${linksBlock}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${selectedFixture.home.name.replace(/\s+/g,'_')}_vs_${selectedFixture.away.name.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  document.getElementById('fileStatus').textContent = '✅ File downloaded.';
 });
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", async ()=>{
   await initAuth();
-  await fetchFootballFixtures();
-  await fetchBroadcasts();
-  populateDropdown();
-  buildThumbnails();
+  if(!GOOGLE_SHEET_ID) console.warn("GOOGLE_SHEET_ID not set in dashboard script");
+  loadDashboardFromTeamSheets().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
+  setInterval(()=> loadDashboardFromTeamSheets().catch(()=>{}), 120000);
 });
 </script>
 
