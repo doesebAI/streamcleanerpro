@@ -185,23 +185,15 @@ const MIRROR_LINK_PLACEHOLDERS = [
 /* ---------- Google Sheets config ---------- */
 const GOOGLE_SHEET_ID = "1jN1uCIr9xmzFF81AIn398Oj0N7y3CeoZBHOL_th6jMA";
 const TEAM_SHEETS = [
-  "ChelseaFixtures",
-  "ArsenalFixtures",
-  "ManUnitedFixtures",
-  "ManCityFixtures",
-  "SpursFixtures",
-  "LiverpoolFixtures",
-  
-  "RealMadridFixtures",
-  "BarcelonaFixtures",
-  "BayernFixtures",
- 
+  "ChelseaFixtures","ArsenalFixtures","ManUnitedFixtures",
+  "ManCityFixtures","SpursFixtures","LiverpoolFixtures",
+  "RealMadridFixtures","BarcelonaFixtures","BayernFixtures"
 ];
 const IFRAME_SHEET = "IframeUrls";
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000;
 
-/* ---------- GViz helpers (same as landing) ---------- */
+/* ---------- GViz helpers (same) ---------- */
 async function fetchGvizSheet(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url);
@@ -218,27 +210,26 @@ async function fetchGvizSheet(sheetName){
   return { cols, rows };
 }
 
+/* ---------- Header mapping ---------- */
 const HEADER_KEYWORDS = {
-  home: ['home','home team','teamhome','team_home','home_team','homeclub','home_name'],
-  away: ['away','away team','teamaway','team_away','away_team','awayclub','away_name'],
-  date: ['date','kickoff','kickoff_time','match_date','fixture_date','datetime','utcdate','dateevent','time'],
-  fixturekey: ['fixturekey','fixture_key','match_id','matchid','id','idevent','fixtureid'],
-  iframe: ['iframeurl','iframe','iframe_url','embed','embed_url','url','embedurl','link'],
-  thumb: ['thumb','thumbnail','thumburl','poster','image','logo','thumb_url'],
-  league: ['league','competition','competition name','tournament','comp'],
-  tv: ['tv','broadcaster','tvstation','channel','station','strtvstation','strchannel','broadcast']
+  home: ['home','home team','teamhome'],
+  away: ['away','away team','teamaway'],
+  date: ['date','kickoff','match_date','utcdate'],
+  fixturekey: ['fixturekey','match_id','id','fixtureid'],
+  iframe: ['iframeurl','iframe','embed','url','link'],
+  thumb: ['thumb','thumbnail','poster','logo'],
+  league: ['league','competition','tournament'],
+  tv: ['tv','broadcaster','channel']
 };
 
 function findHeaderKey(cols, keywordList){
   const lc = cols.map(c=> (c||'').toString().toLowerCase().trim());
   for(const k of keywordList){
-    const ki = k.toLowerCase();
-    const idx = lc.findIndex(h => h === ki);
+    const idx = lc.findIndex(h => h === k.toLowerCase());
     if(idx >= 0) return cols[idx];
   }
   for(const k of keywordList){
-    const ki = k.toLowerCase();
-    const idx = lc.findIndex(h => h.includes(ki));
+    const idx = lc.findIndex(h => h.includes(k.toLowerCase()));
     if(idx >= 0) return cols[idx];
   }
   return null;
@@ -267,7 +258,7 @@ function normalizeDateVal(v){
 
 function makeFixtureKey(row, colMap){
   if(colMap.fixturekey && row[colMap.fixturekey]) return String(row[colMap.fixturekey]);
-  const dateIso = normalizeDateVal(colMap.date ? row[colMap.date] : row.Date || row.date || '');
+  const dateIso = normalizeDateVal(colMap.date ? row[colMap.date] : row.Date || '');
   const dpart = dateIso ? dateIso.slice(0,10) : 'nodate';
   const home = String(row[colMap.home]||row['Home']||'').replace(/\s+/g,'').toLowerCase();
   const away = String(row[colMap.away]||row['Away']||'').replace(/\s+/g,'').toLowerCase();
@@ -276,17 +267,17 @@ function makeFixtureKey(row, colMap){
 
 function normalizeFixtureRow(row, cols){
   const map = mapColumns(cols);
-  const iso = normalizeDateVal(map.date ? row[map.date] : (row.Date||row.date||''));
+  const iso = normalizeDateVal(map.date ? row[map.date] : (row.Date||''));
   return {
     raw: row,
     FixtureKey: makeFixtureKey(row, map),
     home: { name: String(row[map.home]||row['Home']||'') },
     away: { name: String(row[map.away]||row['Away']||'') },
     league: String(row[map.league]||row['Competition']||''),
-    thumb: String(row[map.thumb]||row['Thumb']||PLACEHOLDER_IFRAME),
+    thumb: String(row[map.thumb]||PLACEHOLDER_IFRAME),
     dateISO: iso,
     kickoffMs: iso ? new Date(iso).getTime() : null,
-    title: `${row[map.home]||row['Home']||''} vs ${row[map.away]||row['Away']||''}`
+    title: `${row[map.home]||''} vs ${row[map.away]||''}`
   };
 }
 
@@ -303,21 +294,7 @@ function matchIframeForFixture(fx, iframeRows){
     const exact = iframeRows.find(ir => ir.FixtureKey && String(ir.FixtureKey) === String(fx.FixtureKey));
     if(exact) return exact;
   }
-  const fxDate = fx.dateISO ? new Date(fx.dateISO).toDateString() : null;
-  const hn = fx.home.name.toLowerCase();
-  const an = fx.away.name.toLowerCase();
-  return iframeRows.find(ir => {
-    const vals = Object.values(ir.raw).map(v => (v||'').toString().toLowerCase());
-    const rowDateVal = ir.raw.Date || ir.raw.date || ir.raw.dateEvent || ir.raw.kickoff;
-    if(rowDateVal && fxDate){
-      const p = normalizeDateVal(rowDateVal);
-      if(!p) return false;
-      if(new Date(p).toDateString() !== fxDate) return false;
-    }
-    const hasHome = vals.some(v => hn && v.includes(hn));
-    const hasAway = vals.some(v => an && v.includes(an));
-    return (hasHome && hasAway) || (hasHome || hasAway);
-  }) || null;
+  return null;
 }
 
 function shouldReveal(fx){
@@ -327,15 +304,24 @@ function shouldReveal(fx){
 
 /* ---------- load dashboard sheets ---------- */
 async function loadDashboardFromTeamSheets(){
-  const sheetPromises = TEAM_SHEETS.map(name => fetchGvizSheet(name).then(s=>({name,cols:s.cols,rows:s.rows})).catch(e=>{ console.warn('sheet fail', name, e); return {name,cols:[],rows:[]}; }));
-  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(e => { console.warn('iframe sheet fail', e); return {cols:[],rows:[]}; });
+  const sheetPromises = TEAM_SHEETS.map(name => fetchGvizSheet(name).then(s=>({name,cols:s.cols,rows:s.rows})).catch(()=>({name,cols:[],rows:[]})));
+  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(()=>({cols:[],rows:[]}));
   const results = await Promise.all(sheetPromises);
   const fixtures = [];
-  results.forEach(res => { if(res.rows && res.rows.length) res.rows.forEach(r => fixtures.push(normalizeFixtureRow(r, res.cols))); });
+  results.forEach(res => {
+    if(res.rows && res.rows.length){
+      res.rows.forEach(r => fixtures.push(normalizeFixtureRow(r, res.cols)));
+    }
+  });
   const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
-  fixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
-  renderDashboardUI(fixtures, iframeRows);
-  return { fixtures, iframeRows };
+
+  // ✅ Only keep today's fixtures
+  const today = new Date().toISOString().split("T")[0];
+  const todaysFixtures = fixtures.filter(fx => fx.dateISO && fx.dateISO.startsWith(today));
+
+  todaysFixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
+  renderDashboardUI(todaysFixtures, iframeRows);
+  return { fixtures: todaysFixtures, iframeRows };
 }
 
 /* ---------- render dashboard UI ---------- */
@@ -347,25 +333,27 @@ function renderDashboardUI(fixtures, iframeRows){
   wrap.innerHTML = '';
 
   if(!fixtures.length){
-    sel.innerHTML = `<option value="">No fixtures</option>`;
-    wrap.innerHTML = '<p>No fixtures found</p>';
+    sel.innerHTML = `<option value="">No fixtures today</option>`;
+    wrap.innerHTML = '<p>No fixtures today</p>';
     return;
   }
 
+  wrap.style.display = "grid";
+  wrap.style.gridTemplateColumns = "repeat(auto-fit, minmax(280px, 1fr))";
+  wrap.style.gap = "16px";
+
   fixtures.forEach((fx,i) => {
     const opt = document.createElement('option'); opt.value = i;
-    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleString()}` : '');
+    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '');
     sel.appendChild(opt);
 
-    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'TBA';
+    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'TBA';
     const matchIframe = matchIframeForFixture(fx, iframeRows);
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
       <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
       <div class="logos">
-        <img src="${fx.home.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
-        <div class="vsline">VS</div>
-        <img src="${fx.away.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
+        <div class="vsline">${fx.home.name} VS ${fx.away.name}</div>
       </div>
       <div class="title">${fx.home.name} vs ${fx.away.name}</div>
       <div style="margin-top:6px;font-size:12px">Iframe: ${matchIframe && matchIframe.iframeUrl ? 'Yes' : 'No'}</div>
@@ -386,7 +374,7 @@ function showDashboardPreview(fx, iframeRows){
   const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
   const matchIframe = matchIframeForFixture(fx, iframeRows);
   const iframeToUse = (shouldReveal(fx) && matchIframe && matchIframe.iframeUrl) ? matchIframe.iframeUrl : PLACEHOLDER_IFRAME;
-  const availText = shouldReveal(fx) ? 'Live stream (if provided)' : 'Real live streams will be available 30 mins before start';
+  const availText = shouldReveal(fx) ? 'Live stream available' : 'Streams unlock 30 mins before kickoff';
   preview.innerHTML = `
     <div class="thumb"><img src="${fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.title}"></div>
     <div class="meta">
@@ -417,11 +405,11 @@ document.getElementById('downloadBtn')?.addEventListener('click', async ()=> {
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", async ()=>{
   await initAuth();
-  if(!GOOGLE_SHEET_ID) console.warn("GOOGLE_SHEET_ID not set in dashboard script");
   loadDashboardFromTeamSheets().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
   setInterval(()=> loadDashboardFromTeamSheets().catch(()=>{}), 120000);
 });
 </script>
+
 
 
 
