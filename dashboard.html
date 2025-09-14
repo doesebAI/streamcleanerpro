@@ -125,7 +125,7 @@
 </section>
 
 <script>
-/* ---------- Supabase Auth Setup (kept as you provided) ---------- */
+/* ---------- Supabase Auth Setup (kept) ---------- */
 const supabase = supabase.createClient(
   "https://rfuilglpyamrjbtkacqw.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
@@ -183,17 +183,12 @@ const MIRROR_LINK_PLACEHOLDERS = [
 ];
 
 /* ---------- Google Sheets config ---------- */
-const GOOGLE_SHEET_ID = "1jN1uCIr9xmzFF81AIn398Oj0N7y3CeoZBHOL_th6jMA";
-const TEAM_SHEETS = [
-  "ChelseaFixtures","ArsenalFixtures","ManUnitedFixtures",
-  "ManCityFixtures","SpursFixtures","LiverpoolFixtures",
-  "RealMadridFixtures","BarcelonaFixtures","BayernFixtures"
-];
-const IFRAME_SHEET = "IframeUrls";
+const GOOGLE_SHEET_ID = "1RkQNvEvwDRETLJ4AMRq7RoIfQTw7hY0xWdH72lpU5t8";
+const TEAM_SHEET = "Fixtures"; // single sheet now
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000;
 
-/* ---------- GViz helpers (same) ---------- */
+/* ---------- GViz fetch + parse ---------- */
 async function fetchGvizSheet(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url);
@@ -210,205 +205,134 @@ async function fetchGvizSheet(sheetName){
   return { cols, rows };
 }
 
-/* ---------- Header mapping ---------- */
-const HEADER_KEYWORDS = {
-  home: ['home','home team','teamhome'],
-  away: ['away','away team','teamaway'],
-  date: ['date','kickoff','match_date','utcdate'],
-  fixturekey: ['fixturekey','match_id','id','fixtureid'],
-  iframe: ['iframeurl','iframe','embed','url','link'],
-  thumb: ['thumb','thumbnail','poster','logo'],
-  league: ['league','competition','tournament'],
-  tv: ['tv','broadcaster','channel']
-};
-
-function findHeaderKey(cols, keywordList){
-  const lc = cols.map(c=> (c||'').toString().toLowerCase().trim());
-  for(const k of keywordList){
-    const idx = lc.findIndex(h => h === k.toLowerCase());
-    if(idx >= 0) return cols[idx];
-  }
-  for(const k of keywordList){
-    const idx = lc.findIndex(h => h.includes(k.toLowerCase()));
-    if(idx >= 0) return cols[idx];
-  }
-  return null;
-}
-
-function mapColumns(cols){
+/* ---------- Normalize fixture row ---------- */
+function normalizeFixtureRow(row){
+  const iso = row.Date ? new Date(row.Date).toISOString() : null;
   return {
-    home: findHeaderKey(cols, HEADER_KEYWORDS.home),
-    away: findHeaderKey(cols, HEADER_KEYWORDS.away),
-    date: findHeaderKey(cols, HEADER_KEYWORDS.date),
-    fixturekey: findHeaderKey(cols, HEADER_KEYWORDS.fixturekey),
-    iframe: findHeaderKey(cols, HEADER_KEYWORDS.iframe),
-    thumb: findHeaderKey(cols, HEADER_KEYWORDS.thumb),
-    league: findHeaderKey(cols, HEADER_KEYWORDS.league),
-    tv: findHeaderKey(cols, HEADER_KEYWORDS.tv)
-  };
-}
-
-function normalizeDateVal(v){
-  if(!v) return null;
-  const d = new Date(v);
-  if(!isNaN(d)) return d.toISOString();
-  const p = Date.parse(String(v).replace(/\s*\(.*\)/,'')); 
-  return isNaN(p) ? null : new Date(p).toISOString();
-}
-
-function makeFixtureKey(row, colMap){
-  if(colMap.fixturekey && row[colMap.fixturekey]) return String(row[colMap.fixturekey]);
-  const dateIso = normalizeDateVal(colMap.date ? row[colMap.date] : row.Date || '');
-  const dpart = dateIso ? dateIso.slice(0,10) : 'nodate';
-  const home = String(row[colMap.home]||row['Home']||'').replace(/\s+/g,'').toLowerCase();
-  const away = String(row[colMap.away]||row['Away']||'').replace(/\s+/g,'').toLowerCase();
-  return `${dpart}-${home}-vs-${away}`;
-}
-
-function normalizeFixtureRow(row, cols){
-  const map = mapColumns(cols);
-  const iso = normalizeDateVal(map.date ? row[map.date] : (row.Date||''));
-  return {
-    raw: row,
-    FixtureKey: makeFixtureKey(row, map),
-    home: { name: String(row[map.home]||row['Home']||'') },
-    away: { name: String(row[map.away]||row['Away']||'') },
-    league: String(row[map.league]||row['Competition']||''),
-    thumb: String(row[map.thumb]||PLACEHOLDER_IFRAME),
     dateISO: iso,
     kickoffMs: iso ? new Date(iso).getTime() : null,
-    title: `${row[map.home]||''} vs ${row[map.away]||''}`
+    home: { name: row.HomeTeam, logo: row.HomeLogoURL },
+    away: { name: row.AwayTeam, logo: row.AwayLogoURL },
+    league: row.League,
+    iframeDiv: row.IframeDivBlock || PLACEHOLDER_IFRAME,
+    status: row.Status || "Upcoming",
+    title: `${row.HomeTeam} vs ${row.AwayTeam}`
   };
-}
-
-function normalizeIframeRows(rows, cols){
-  const map = mapColumns(cols);
-  const iframeCol = map.iframe || findHeaderKey(cols, ['url','link']);
-  const fixtureKeyCol = map.fixturekey || findHeaderKey(cols, HEADER_KEYWORDS.fixturekey);
-  return rows.map(r => ({ raw: r, FixtureKey: fixtureKeyCol ? String(r[fixtureKeyCol]) : null, iframeUrl: iframeCol ? String(r[iframeCol]) : null }));
-}
-
-function matchIframeForFixture(fx, iframeRows){
-  if(!iframeRows || !iframeRows.length) return null;
-  if(fx.FixtureKey){
-    const exact = iframeRows.find(ir => ir.FixtureKey && String(ir.FixtureKey) === String(fx.FixtureKey));
-    if(exact) return exact;
-  }
-  return null;
 }
 
 function shouldReveal(fx){
+  if(fx.status === "Finished") return true;
   if(!fx.kickoffMs) return false;
   return Date.now() >= (fx.kickoffMs - REVEAL_BEFORE_MS);
 }
 
-/* ---------- load dashboard sheets ---------- */
-async function loadDashboardFromTeamSheets(){
-  const sheetPromises = TEAM_SHEETS.map(name => fetchGvizSheet(name).then(s=>({name,cols:s.cols,rows:s.rows})).catch(()=>({name,cols:[],rows:[]})));
-  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(()=>({cols:[],rows:[]}));
-  const results = await Promise.all(sheetPromises);
-  const fixtures = [];
-  results.forEach(res => {
-    if(res.rows && res.rows.length){
-      res.rows.forEach(r => fixtures.push(normalizeFixtureRow(r, res.cols)));
-    }
+/* ---------- Load dashboard fixtures ---------- */
+async function loadDashboardFixtures(){
+  const sheet = await fetchGvizSheet(TEAM_SHEET).catch(()=>({cols:[],rows:[]}));
+  const todayStr = new Date().toISOString().slice(0,10);
+  let fixtures = [];
+
+  sheet.rows.forEach(r => {
+    const fx = normalizeFixtureRow(r);
+    if(fx.dateISO && fx.dateISO.slice(0,10) === todayStr) fixtures.push(fx);
   });
-  const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
 
-  // ✅ Only keep today's fixtures
-  const today = new Date().toISOString().split("T")[0];
-  const todaysFixtures = fixtures.filter(fx => fx.dateISO && fx.dateISO.startsWith(today));
-
-  todaysFixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
-  renderDashboardUI(todaysFixtures, iframeRows);
-  return { fixtures: todaysFixtures, iframeRows };
+  fixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
+  renderDashboardUI(fixtures);
+  return fixtures;
 }
 
-/* ---------- render dashboard UI ---------- */
+/* ---------- Render dashboard UI ---------- */
 let selectedFixture = null;
-function renderDashboardUI(fixtures, iframeRows){
+function renderDashboardUI(fixtures){
   const sel = document.getElementById('streamSelect');
   const wrap = document.getElementById('thumbList');
   sel.innerHTML = `<option value="">-- Choose a match --</option>`;
   wrap.innerHTML = '';
+  wrap.style.display = "grid";
+  wrap.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
+  wrap.style.gap = "15px";
 
   if(!fixtures.length){
-    sel.innerHTML = `<option value="">No fixtures today</option>`;
-    wrap.innerHTML = '<p>No fixtures today</p>';
+    sel.innerHTML = `<option>No fixtures today</option>`;
+    wrap.innerHTML = '<p>No fixtures found</p>';
     return;
   }
 
-  wrap.style.display = "grid";
-  wrap.style.gridTemplateColumns = "repeat(auto-fit, minmax(280px, 1fr))";
-  wrap.style.gap = "16px";
-
   fixtures.forEach((fx,i) => {
     const opt = document.createElement('option'); opt.value = i;
-    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '');
+    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}`;
     sel.appendChild(opt);
 
-    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'TBA';
-    const matchIframe = matchIframeForFixture(fx, iframeRows);
+    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit'}) : 'TBA';
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
       <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
       <div class="logos">
-        <div class="vsline">${fx.home.name} VS ${fx.away.name}</div>
+        <img src="${fx.home.logo||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
+        <div class="vsline">VS</div>
+        <img src="${fx.away.logo||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
       </div>
       <div class="title">${fx.home.name} vs ${fx.away.name}</div>
-      <div style="margin-top:6px;font-size:12px">Iframe: ${matchIframe && matchIframe.iframeUrl ? 'Yes' : 'No'}</div>
     `;
-    card.addEventListener('click', ()=> { sel.value = i; showDashboardPreview(fx, iframeRows); });
+    card.addEventListener('click', ()=> { sel.value = i; showDashboardPreview(fixtures[i]); });
     wrap.appendChild(card);
   });
 
   sel.addEventListener('change', ()=> {
     const idx = parseInt(sel.value,10);
-    if(!isNaN(idx)) showDashboardPreview(fixtures[idx], iframeRows);
+    if(!isNaN(idx)) showDashboardPreview(fixtures[idx]);
   });
-  showDashboardPreview(fixtures[0], iframeRows);
+  showDashboardPreview(fixtures[0]);
 }
 
-function showDashboardPreview(fx, iframeRows){
+function showDashboardPreview(fx){
   const preview = document.getElementById('matchPreview'); preview.style.display = 'block';
   const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
-  const matchIframe = matchIframeForFixture(fx, iframeRows);
-  const iframeToUse = (shouldReveal(fx) && matchIframe && matchIframe.iframeUrl) ? matchIframe.iframeUrl : PLACEHOLDER_IFRAME;
-  const availText = shouldReveal(fx) ? 'Live stream available' : 'Streams unlock 30 mins before kickoff';
+  const reveal = shouldReveal(fx);
+  const iframeBlock = reveal ? fx.iframeDiv : PLACEHOLDER_IFRAME;
+  const availText = reveal ? (fx.status === "Finished" ? "Match has ended" : "Live stream (if provided)") : "Streams will be available 30 mins before start";
+
   preview.innerHTML = `
-    <div class="thumb"><img src="${fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.title}"></div>
+    <div class="thumb"><img src="${fx.home.logo}" alt="${fx.title}"></div>
     <div class="meta">
       <div style="font-weight:700">${fx.home.name} vs ${fx.away.name}</div>
       <div class="muted">${fx.league} • ${when}</div>
       <div style="margin-top:6px"><span class="pill">${availText}</span></div>
-      <div class="iframe-box" style="margin-top:10px"><iframe src="${iframeToUse}" allowfullscreen></iframe></div>
+      <div class="iframe-box" style="margin-top:10px">${iframeBlock}</div>
     </div>
   `;
   selectedFixture = fx;
 }
 
-/* ---------- Export (download) ---------- */
-document.getElementById('downloadBtn')?.addEventListener('click', async ()=> {
-  if(!selectedFixture) return alert('Select a match first.');
+/* ---------- Export HTML ---------- */
+document.getElementById('downloadBtn')?.addEventListener('click', ()=>{
+  if(!selectedFixture) return alert("Select a match first.");
   const include = document.getElementById('includeLinks')?.checked || false;
   const adCode = document.getElementById('adCode')?.value || '';
-  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(()=>({cols:[],rows:[]}));
-  const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
-  const matched = matchIframeForFixture(selectedFixture, iframeRows);
-  const iframeToUse = (shouldReveal(selectedFixture) && matched && matched.iframeUrl) ? matched.iframeUrl : PLACEHOLDER_IFRAME;
+  const iframeToUse = (shouldReveal(selectedFixture)) ? selectedFixture.iframeDiv : PLACEHOLDER_IFRAME;
   const linksBlock = include ? `<div class="links"><ul>${(window.MIRROR_LINK_PLACEHOLDERS||[]).map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${selectedFixture.home.name} vs ${selectedFixture.away.name}</h1><iframe src="${iframeToUse}" style="width:100%;height:70vh;border:0"></iframe><div>${adCode}</div>${linksBlock}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${selectedFixture.home.name.replace(/\s+/g,'_')}_vs_${selectedFixture.away.name.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  document.getElementById('fileStatus').textContent = '✅ File downloaded.';
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body>
+    <h1>${selectedFixture.home.name} vs ${selectedFixture.away.name}</h1>
+    ${iframeToUse}
+    <div>${adCode}</div>${linksBlock}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'}); 
+  const url=URL.createObjectURL(blob); 
+  const a=document.createElement('a'); 
+  a.href=url; 
+  a.download=`${selectedFixture.home.name.replace(/\s+/g,'_')}_vs_${selectedFixture.away.name.replace(/\s+/g,'_')}.html`; 
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  document.getElementById('fileStatus').textContent = "✅ File downloaded.";
 });
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", async ()=>{
   await initAuth();
-  loadDashboardFromTeamSheets().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
-  setInterval(()=> loadDashboardFromTeamSheets().catch(()=>{}), 120000);
+  loadDashboardFixtures().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
+  setInterval(()=> loadDashboardFixtures().catch(()=>{}), 120000);
 });
 </script>
+
 
 
 
