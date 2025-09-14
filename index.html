@@ -358,134 +358,124 @@ function calcROI() {
 document.getElementById('calcBtn').addEventListener('click', calcROI);
 
 /** ===========================
- * Fixtures & iframe mapping from Google Sheets
+ * Fixtures from Google Sheets
  * =========================== */
 const GOOGLE_SHEET_ID = "1RkQNvEvwDRETLJ4AMRq7RoIfQTw7hY0xWdH72lpU5t8";
-const TEAM_SHEETS = ["Fixtures"]; // only one sheet now
+const TEAM_SHEETS = [
+  "ChelseaFixtures","ArsenalFixtures","ManUnitedFixtures",
+  "ManCityFixtures","SpursFixtures","LiverpoolFixtures",
+  "RealMadridFixtures","BarcelonaFixtures","BayernFixtures"
+];
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000;
 
-/* ---------- GViz fetch + parse ---------- */
+/* ---------- Fetch + Parse ---------- */
 async function fetchGvizSheet(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url);
-  if(!res.ok) throw new Error(`Failed to fetch sheet ${sheetName}: ${res.status}`);
   const text = await res.text();
-  const jsonText = text.replace(/^[^\(]*\(/, "").replace(/\);?$/, "");
-  const parsed = JSON.parse(jsonText);
-  const cols = (parsed.table.cols || []).map(c => (c.label || c.id || "").toString().trim());
-  const rows = (parsed.table.rows || []).map(r => {
-    const obj = {};
-    (r.c || []).forEach((cell, i) => { obj[cols[i] || `c${i}`] = cell ? cell.v : ""; });
+  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}")+1));
+  const cols = json.table.cols.map(c => c.label);
+  const rows = json.table.rows.map(r => {
+    const obj={};
+    r.c.forEach((cell,i)=> obj[cols[i]] = cell ? cell.v : "");
     return obj;
   });
-  return { cols, rows };
+  return rows;
 }
 
-function normalizeFixtureRow(row){
-  const iso = row.Date ? new Date(row.Date).toISOString() : null;
-  return {
-    dateISO: iso,
-    kickoffMs: iso ? new Date(iso).getTime() : null,
-    home: { name: row.HomeTeam, logo: row.HomeLogoURL },
-    away: { name: row.AwayTeam, logo: row.AwayLogoURL },
-    league: row.League,
-    iframeDiv: row.IframeDivBlock || PLACEHOLDER_IFRAME,
-    status: row.Status || "Upcoming",
-    title: `${row.HomeTeam} vs ${row.AwayTeam}`
-  };
+function normalizeDate(v){
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
 }
 
-function shouldReveal(fx){
-  if(fx.status === "Finished") return true;
-  if(!fx.kickoffMs) return false;
-  return Date.now() >= (fx.kickoffMs - REVEAL_BEFORE_MS);
+function shouldReveal(kickoff){
+  if(!kickoff) return false;
+  return Date.now() >= (kickoff.getTime() - REVEAL_BEFORE_MS);
 }
 
-/* ---------- load landing data (today only) ---------- */
-async function loadLandingFromTeamSheets(){
-  const sheet = await fetchGvizSheet("Fixtures").catch(()=>({cols:[],rows:[]}));
+/* ---------- Load Fixtures ---------- */
+async function loadLandingFixtures(){
   const todayStr = new Date().toISOString().slice(0,10);
-  let fixtures = [];
-
-  sheet.rows.forEach(r => {
-    const fx = normalizeFixtureRow(r);
-    if(fx.dateISO && fx.dateISO.slice(0,10) === todayStr) fixtures.push(fx);
-  });
-
-  fixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
+  let fixtures=[];
+  for(const sheet of TEAM_SHEETS){
+    try{
+      const rows = await fetchGvizSheet(sheet);
+      rows.forEach(r=>{
+        const date = normalizeDate(r["Date"]);
+        if(date && date.toISOString().slice(0,10)===todayStr){
+          fixtures.push({
+            home:{name:r["HomeTeam"],logo:r["HomeLogoURL"]},
+            away:{name:r["AwayTeam"],logo:r["AwayLogoURL"]},
+            league:r["League"],
+            date:date,
+            iframe:r["IframeDivBlock"],
+            status:r["Status"]||""
+          });
+        }
+      });
+    }catch(e){console.warn("Fail sheet",sheet,e);}
+  }
+  fixtures.sort((a,b)=>a.date-b.date);
   renderLandingUI(fixtures);
   return fixtures;
 }
 
-/* ---------- rendering (grid layout) ---------- */
+/* ---------- Render ---------- */
 function renderLandingUI(fixtures){
-  const sel = document.getElementById('streamSelect');
-  const wrap = document.getElementById('thumbList');
-  sel.innerHTML = '';
-  wrap.innerHTML = '';
-  wrap.style.display = "grid";
-  wrap.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
-  wrap.style.gap = "15px";
+  const sel=document.getElementById("streamSelect");
+  const wrap=document.getElementById("thumbList");
+  sel.innerHTML=""; wrap.innerHTML="";
+  wrap.style.display="grid";
+  wrap.style.gridTemplateColumns="repeat(auto-fill,minmax(220px,1fr))";
+  wrap.style.gap="15px";
 
-  if(!fixtures.length){
-    sel.innerHTML = '<option value="">No fixtures</option>';
-    wrap.innerHTML = '<p>No fixtures today</p>';
-    return;
-  }
+  if(!fixtures.length){wrap.innerHTML="<p>No fixtures today</p>";return;}
 
-  fixtures.forEach((fx,i) => {
-    const opt = document.createElement('option'); opt.value = i;
-    opt.textContent = `[${fx.league}] ${fx.home.name} vs ${fx.away.name}`;
+  fixtures.forEach((fx,i)=>{
+    const opt=document.createElement("option");
+    opt.value=i;
+    opt.textContent=`[${fx.league}] ${fx.home.name} vs ${fx.away.name}`;
     sel.appendChild(opt);
 
-    const card = document.createElement('div'); card.className='card';
-    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit'}) : 'TBA';
-    card.innerHTML = `
-      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
+    const when=fx.date.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML=`
+      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${when}</span></div>
       <div class="logos">
-        <img src="${fx.home.logo||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
+        <img src="${fx.home.logo}" alt="${fx.home.name}">
         <div class="vsline">VS</div>
-        <img src="${fx.away.logo||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
+        <img src="${fx.away.logo}" alt="${fx.away.name}">
       </div>
-      <div class="title">${fx.home.name} vs ${fx.away.name}</div>
-    `;
-    card.addEventListener('click', ()=> { sel.value = i; renderLandingPreview(fixtures[i]); });
+      <div class="title">${fx.home.name} vs ${fx.away.name}</div>`;
+    card.addEventListener("click",()=>{sel.value=i;renderLandingPreview(fx);});
     wrap.appendChild(card);
-  });
-
-  sel.addEventListener('change', ()=> {
-    const idx = parseInt(sel.value,10);
-    if(!isNaN(idx)) renderLandingPreview(fixtures[idx]);
   });
   renderLandingPreview(fixtures[0]);
 }
 
 function renderLandingPreview(fx){
-  const preview = document.getElementById('matchPreview');
-  preview.style.display = 'flex';
-  const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
-  const reveal = shouldReveal(fx);
-  const iframeBlock = reveal ? fx.iframeDiv : PLACEHOLDER_IFRAME;
-  const availabilityText = reveal ? (fx.status === "Finished" ? "Match has ended" : "Live stream (if provided)") : "Streams will be available 30 mins before start";
-
-  preview.innerHTML = `
-    <div class="thumb"><img src="${fx.home.logo}" alt="${fx.title}"></div>
+  const preview=document.getElementById("matchPreview");
+  preview.style.display="flex";
+  const reveal=shouldReveal(fx.date);
+  const embedHtml=reveal && fx.iframe ? (fx.iframe.trim().startsWith("<")?fx.iframe:`<iframe src="${fx.iframe}" allowfullscreen></iframe>`) : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
+  preview.innerHTML=`
+    <div class="thumb"><img src="${fx.home.logo}" alt=""></div>
     <div class="meta">
-      <div style="font-weight:700; font-size:1.05rem">${fx.home.name} vs ${fx.away.name}</div>
-      <div class="muted">${fx.league} • ${when}</div>
-      <div style="margin-top:6px; color:#f8c04a; font-weight:600">${availabilityText}</div>
-      <div class="iframe-box" style="margin-top:10px">${iframeBlock}</div>
-    </div>
-  `;
+      <div style="font-weight:700">${fx.home.name} vs ${fx.away.name}</div>
+      <div class="muted">${fx.league} • ${fx.date.toLocaleString()}</div>
+      <div style="margin-top:6px;color:#f8c04a;font-weight:600">${reveal?"Live stream (if provided)":"Streams will be available 30 mins before start"}</div>
+      <div class="iframe-box" style="margin-top:10px">${embedHtml}</div>
+    </div>`;
 }
 
 /* ---------- Init ---------- */
-document.addEventListener('DOMContentLoaded', ()=> {
-  loadLandingFromTeamSheets().catch(()=> { document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
-  setInterval(()=> loadLandingFromTeamSheets().catch(()=>{}), 120000);
+document.addEventListener("DOMContentLoaded",()=>{
+  loadLandingFixtures();
+  setInterval(loadLandingFixtures,120000);
 });
 </script>
+
 
 
 
