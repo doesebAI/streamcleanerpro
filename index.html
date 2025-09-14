@@ -358,15 +358,10 @@ function calcROI() {
 document.getElementById('calcBtn').addEventListener('click', calcROI);
 
 /** ===========================
- * Fixtures & iframe mapping from Google Sheets (team-per-sheet)
+ * Fixtures & iframe mapping from Google Sheets
  * =========================== */
-const GOOGLE_SHEET_ID = "1jN1uCIr9xmzFF81AIn398Oj0N7y3CeoZBHOL_th6jMA";
-const TEAM_SHEETS = [
-  "ChelseaFixtures","ArsenalFixtures","ManUnitedFixtures",
-  "ManCityFixtures","SpursFixtures","LiverpoolFixtures",
-  "RealMadridFixtures","BarcelonaFixtures","BayernFixtures"
-];
-const IFRAME_SHEET = "IframeUrls";
+const GOOGLE_SHEET_ID = "1RkQNvEvwDRETLJ4AMRq7RoIfQTw7hY0xWdH72lpU5t8";
+const TEAM_SHEETS = ["Fixtures"]; // only one sheet now
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000;
 
@@ -387,112 +382,35 @@ async function fetchGvizSheet(sheetName){
   return { cols, rows };
 }
 
-/* ---------- fuzzy header detection ---------- */
-const HEADER_KEYWORDS = {
-  home: ['home','home team','teamhome','team_home','home_team','homeclub','home_name'],
-  away: ['away','away team','teamaway','team_away','away_team','awayclub','away_name'],
-  date: ['date','kickoff','kickoff_time','match_date','fixture_date','datetime','utcdate','dateevent','time'],
-  fixturekey: ['fixturekey','fixture_key','match_id','matchid','id','idevent','fixtureid'],
-  iframe: ['iframeurl','iframe','iframe_url','embed','embed_url','url','embedurl','link'],
-  thumb: ['thumb','thumbnail','thumburl','poster','image','logo','thumb_url'],
-  league: ['league','competition','competition name','tournament','comp'],
-  tv: ['tv','broadcaster','tvstation','channel','station','strtvstation','strchannel','broadcast']
-};
-function findHeaderKey(cols, keywordList){
-  const lc = cols.map(c=> (c||'').toString().toLowerCase().trim());
-  for(const k of keywordList){
-    const ki = k.toLowerCase();
-    const idx = lc.findIndex(h => h === ki);
-    if(idx >= 0) return cols[idx];
-  }
-  for(const k of keywordList){
-    const ki = k.toLowerCase();
-    const idx = lc.findIndex(h => h.includes(ki));
-    if(idx >= 0) return cols[idx];
-  }
-  return null;
-}
-function mapColumns(cols){
+function normalizeFixtureRow(row){
+  const iso = row.Date ? new Date(row.Date).toISOString() : null;
   return {
-    home: findHeaderKey(cols, HEADER_KEYWORDS.home),
-    away: findHeaderKey(cols, HEADER_KEYWORDS.away),
-    date: findHeaderKey(cols, HEADER_KEYWORDS.date),
-    fixturekey: findHeaderKey(cols, HEADER_KEYWORDS.fixturekey),
-    iframe: findHeaderKey(cols, HEADER_KEYWORDS.iframe),
-    thumb: findHeaderKey(cols, HEADER_KEYWORDS.thumb),
-    league: findHeaderKey(cols, HEADER_KEYWORDS.league),
-    tv: findHeaderKey(cols, HEADER_KEYWORDS.tv)
-  };
-}
-function normalizeDateVal(v){
-  if(!v) return null;
-  const d = new Date(v);
-  if(!isNaN(d)) return d.toISOString();
-  const p = Date.parse(String(v).replace(/\s*\(.*\)/,''));
-  return isNaN(p) ? null : new Date(p).toISOString();
-}
-function makeFixtureKey(row, colMap){
-  if(colMap.fixturekey && row[colMap.fixturekey]) return String(row[colMap.fixturekey]);
-  const dateIso = normalizeDateVal(colMap.date ? row[colMap.date] : row.Date || row.date || '');
-  const dpart = dateIso ? dateIso.slice(0,10) : 'nodate';
-  const home = String(row[colMap.home]||row['Home']||'').replace(/\s+/g,'').toLowerCase();
-  const away = String(row[colMap.away]||row['Away']||'').replace(/\s+/g,'').toLowerCase();
-  return `${dpart}-${home}-vs-${away}`;
-}
-function normalizeFixtureRow(row, cols){
-  const map = mapColumns(cols);
-  const iso = normalizeDateVal(map.date ? row[map.date] : (row.Date||row.date||''));
-  return {
-    raw: row,
-    FixtureKey: makeFixtureKey(row, map),
-    home: { name: String(row[map.home]||row['Home']||'') },
-    away: { name: String(row[map.away]||row['Away']||'') },
-    league: String(row[map.league]||row['Competition']||''),
-    thumb: String(row[map.thumb]||row['Thumb']||PLACEHOLDER_IFRAME),
     dateISO: iso,
     kickoffMs: iso ? new Date(iso).getTime() : null,
-    title: `${row[map.home]||row['Home']||''} vs ${row[map.away]||row['Away']||''}`
+    home: { name: row.HomeTeam, logo: row.HomeLogoURL },
+    away: { name: row.AwayTeam, logo: row.AwayLogoURL },
+    league: row.League,
+    iframeDiv: row.IframeDivBlock || PLACEHOLDER_IFRAME,
+    status: row.Status || "Upcoming",
+    title: `${row.HomeTeam} vs ${row.AwayTeam}`
   };
 }
-function normalizeIframeRows(rows, cols){
-  const map = mapColumns(cols);
-  const iframeCol = map.iframe || findHeaderKey(cols, ['url','link']);
-  const fixtureKeyCol = map.fixturekey || findHeaderKey(cols, HEADER_KEYWORDS.fixturekey);
-  return rows.map(r => ({ raw: r, FixtureKey: fixtureKeyCol ? String(r[fixtureKeyCol]) : null, iframeUrl: iframeCol ? String(r[iframeCol]) : null }));
-}
-function matchIframeForFixture(fx, iframeRows){
-  if(!iframeRows || !iframeRows.length) return null;
-  if(fx.FixtureKey){
-    const exact = iframeRows.find(ir => ir.FixtureKey && String(ir.FixtureKey) === String(fx.FixtureKey));
-    if(exact) return exact;
-  }
-  return null;
-}
+
 function shouldReveal(fx){
+  if(fx.status === "Finished") return true;
   if(!fx.kickoffMs) return false;
   return Date.now() >= (fx.kickoffMs - REVEAL_BEFORE_MS);
 }
 
 /* ---------- load landing data (today only) ---------- */
 async function loadLandingFromTeamSheets(){
-  const sheetPromises = TEAM_SHEETS.map(name => fetchGvizSheet(name).then(s=>({name,cols:s.cols,rows:s.rows})).catch(()=>({name,cols:[],rows:[]})));
-  const iframeSheet = await fetchGvizSheet(IFRAME_SHEET).catch(()=>({cols:[],rows:[]}));
-  const sheetsData = await Promise.all(sheetPromises);
-
+  const sheet = await fetchGvizSheet("Fixtures").catch(()=>({cols:[],rows:[]}));
   const todayStr = new Date().toISOString().slice(0,10);
   let fixtures = [];
-  sheetsData.forEach(sd => {
-    if(!sd.rows.length) return;
-    sd.rows.forEach(r => {
-      const fx = normalizeFixtureRow(r, sd.cols);
-      if(fx.dateISO && fx.dateISO.slice(0,10) === todayStr) fixtures.push(fx);
-    });
-  });
 
-  const iframeRows = normalizeIframeRows(iframeSheet.rows, iframeSheet.cols);
-  fixtures.forEach(fx => {
-    const matched = matchIframeForFixture(fx, iframeRows);
-    fx.iframeUrl = matched ? matched.iframeUrl : null;
+  sheet.rows.forEach(r => {
+    const fx = normalizeFixtureRow(r);
+    if(fx.dateISO && fx.dateISO.slice(0,10) === todayStr) fixtures.push(fx);
   });
 
   fixtures.sort((a,b) => (a.kickoffMs||0) - (b.kickoffMs||0));
@@ -526,9 +444,9 @@ function renderLandingUI(fixtures){
     card.innerHTML = `
       <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
       <div class="logos">
-        <img src="${fx.home.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
+        <img src="${fx.home.logo||PLACEHOLDER_IFRAME}" alt="${fx.home.name}">
         <div class="vsline">VS</div>
-        <img src="${fx.away.logo||fx.thumb||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
+        <img src="${fx.away.logo||PLACEHOLDER_IFRAME}" alt="${fx.away.name}">
       </div>
       <div class="title">${fx.home.name} vs ${fx.away.name}</div>
     `;
@@ -547,40 +465,20 @@ function renderLandingPreview(fx){
   const preview = document.getElementById('matchPreview');
   preview.style.display = 'flex';
   const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
-  const reveal = shouldReveal(fx) && fx.iframeUrl;
-  const iframeSrc = reveal ? fx.iframeUrl : PLACEHOLDER_IFRAME;
-  const availabilityText = reveal ? 'Live stream (if provided)' : 'Streams will be available 30 mins before start';
-  const broadcaster = fx.raw.Broadcast || fx.raw.TV || fx.raw.tv || 'TBA';
+  const reveal = shouldReveal(fx);
+  const iframeBlock = reveal ? fx.iframeDiv : PLACEHOLDER_IFRAME;
+  const availabilityText = reveal ? (fx.status === "Finished" ? "Match has ended" : "Live stream (if provided)") : "Streams will be available 30 mins before start";
 
   preview.innerHTML = `
-    <div class="thumb"><img src="${fx.thumb || PLACEHOLDER_IFRAME}" alt="${fx.title}"></div>
+    <div class="thumb"><img src="${fx.home.logo}" alt="${fx.title}"></div>
     <div class="meta">
       <div style="font-weight:700; font-size:1.05rem">${fx.home.name} vs ${fx.away.name}</div>
       <div class="muted">${fx.league} • ${when}</div>
-      <div style="margin-top:6px"><span class="pill">Broadcaster: ${broadcaster}</span></div>
       <div style="margin-top:6px; color:#f8c04a; font-weight:600">${availabilityText}</div>
-      <div class="iframe-box" style="margin-top:10px"><iframe src="${iframeSrc}" allowfullscreen></iframe></div>
+      <div class="iframe-box" style="margin-top:10px">${iframeBlock}</div>
     </div>
   `;
 }
-
-/* ---------- Download/Export (email-gated) ---------- */
-document.getElementById('downloadTrigger')?.addEventListener('click', ()=> {
-  document.getElementById('emailInline').style.display = 'block';
-});
-document.getElementById('confirmDownload')?.addEventListener('click', async ()=> {
-  const fixtures = await loadLandingFromTeamSheets();
-  const sel = document.getElementById('streamSelect'); const idx = parseInt(sel.value,10);
-  if(isNaN(idx)) return alert('Please select an event first.');
-  const fx = fixtures[idx];
-  const ad = document.getElementById('adCode')?.value || '';
-  const include = document.getElementById('includeLinks')?.checked || false;
-  const iframeToUse = (shouldReveal(fx) && fx.iframeUrl) ? fx.iframeUrl : PLACEHOLDER_IFRAME;
-  const linksBlock = include ? `<div class="links"><ul>${(window.MIRROR_LINK_PLACEHOLDERS||[]).map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${fx.home.name} vs ${fx.away.name}</h1><iframe src="${iframeToUse}" style="width:100%;height:70vh;border:0"></iframe><div>${ad}</div>${linksBlock}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${fx.home.name.replace(/\s+/g,'_')}_vs_${fx.away.name.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  document.getElementById('emailInline').style.display = 'none';
-});
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', ()=> {
@@ -588,6 +486,7 @@ document.addEventListener('DOMContentLoaded', ()=> {
   setInterval(()=> loadLandingFromTeamSheets().catch(()=>{}), 120000);
 });
 </script>
+
 
 
 
