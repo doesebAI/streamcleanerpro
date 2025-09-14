@@ -335,23 +335,33 @@
 /* ---------- Manual fixtures (edit these) ---------- */
 /* Add/remove objects here. dateISO must be parseable by `new Date()` */
 const FIXTURES = [
-  
- 
-   {
-    FixtureKey: "2025-09-13-brentford-vs-chelsea",
-    dateISO: "2025-09-13T19:00:00Z",
+  {
+    FixtureKey: "2025-09-14-brentford-vs-chelsea",
+    dateISO: "2025-09-14T19:00:00Z",
     homeName: "Brentford",
     homeLogo: "https://totalsportek.army/assets2/images/premier/Brentford.png",
     awayName: "Chelsea",
     awayLogo: "https://totalsportek.army/assets2/images/premier/Chelsea.png",
     league: "Premier League",
-    iframeHtml: null,https://sportstvnow.org/games/stream2
+    iframeHtml: null, // https://sportstvnow.org/games/stream2
+    status: "Upcoming"
+  },
+  /* Example with placeholder visible immediately (uncomment to test):
+  {
+    FixtureKey: "example-immediate",
+    dateISO: "2025-09-13T18:00:00Z",
+    homeName: "Home FC",
+    homeLogo: "",
+    awayName: "Away FC",
+    awayLogo: "",
+    league: "Friendly",
+    iframeHtml: "<div style='background:#000;color:#fff;padding:10px'>Example embed block</div>",
     status: "Upcoming"
   }
   */
 ];
 
-const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
+const PLACEHOLDER_IFRAME = "https://sportstvnow.org/games/stream2";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000; // 30 minutes
 
 /* ROI calc unchanged */
@@ -509,6 +519,7 @@ document.addEventListener('DOMContentLoaded', ()=> {
   setInterval(()=> loadLocalFixturesLanding(), 60*1000); // refresh every minute in case reveal time passes
 });
 </script>
+
 
 
 
