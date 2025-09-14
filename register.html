@@ -18,7 +18,7 @@
     <h2>Register</h2>
     <input type="email" id="regEmail" placeholder="Email" />
     <input type="password" id="regPassword" placeholder="Password" />
-    <button onclick="register()">Sign Up</button>
+    <button onclick="register()">Sign Up & Pay</button>
     <a href="login.html">Already have an account? Login</a>
   </div>
 
@@ -27,18 +27,19 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    async function register() {
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
+  async function register() {
+  const email = document.getElementById("regEmail").value;
+  const password = document.getElementById("regPassword").value;
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        alert(error.message);
-      } else {
-        alert("Check your inbox for confirmation email.");
-        window.location.href = "login.html";
-      }
-    }
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("Account created! Redirecting to payment...");
+    window.location.href = "https://streamcleanerpro.gumroad.com/l/yctnse?wanted=true";
+  }
+}
+
   </script>
 </body>
 </html>
