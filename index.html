@@ -332,8 +332,7 @@
 </section>
 
 <script>
-/* ---------- Manual fixtures (edit these) ---------- */
-/* Add/remove objects here. dateISO must be parseable by `new Date()` */
+/* ---------- Manual fixtures ---------- */
 const FIXTURES = [
   {
     FixtureKey: "2025-09-14-brentford-vs-chelsea",
@@ -343,27 +342,26 @@ const FIXTURES = [
     awayName: "Chelsea",
     awayLogo: "https://totalsportek.army/assets2/images/premier/Chelsea.png",
     league: "Premier League",
-    iframeHtml: null, // https://sportstvnow.org/games/stream2
+    iframeHtml: null,
     status: "Upcoming"
   },
   {
-  FixtureKey: "2025-09-14-Barcelona-vs-Valencia",
-  dateISO: "2025-09-14T19:00:00Z",
-  homeName: "Barcelona",
-  homeLogo: "https://totalsportek.army/assets2/images/premier/Barcelona.png",
-  awayName: "Valencia",
-  awayLogo: "https://totalsportek.army/assets2/images/premier/Valencia.png",
-  league: "La Liga",
-  iframeHtml: `<iframe src="https://sportstvnow.org/games/stream2/" style="width:100%;height:70vh;border:0" allowfullscreen></iframe>`,
-
-  status: "Upcoming"
-},
+    FixtureKey: "2025-09-14-barcelona-vs-valencia",
+    dateISO: "2025-09-14T19:00:00Z",
+    homeName: "Barcelona",
+    homeLogo: "https://totalsportek.army/assets2/images/premier/Barcelona.png",
+    awayName: "Valencia",
+    awayLogo: "https://totalsportek.army/assets2/images/premier/Valencia.png",
+    league: "La Liga",
+    iframeHtml: `<iframe src="https://sportstvnow.org/games/stream2/" style="width:100%;height:70vh;border:0" allowfullscreen></iframe>`,
+    status: "Upcoming"
+  }
 ];
 
-const PLACEHOLDER_IFRAME = "https://sportstvnow.org/games/stream2";
+const PLACEHOLDER_IFRAME = "https://via.placeholder.com/800x450?text=Stream+Available+Soon";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000; // 30 minutes
 
-/* ROI calc unchanged */
+/* ---------- ROI calc ---------- */
 function calcROI() {
   const visits = +document.getElementById('visits').value||0;
   const ppv = +document.getElementById('ppv').value||1;
@@ -382,9 +380,9 @@ function calcROI() {
      Total: <b>$${total.toFixed(2)}</b> (Net: $${(total-25).toFixed(2)})`;
   document.getElementById('beVisitors').innerText=beVisitors;
 }
-document.getElementById('calcBtn').addEventListener('click', calcROI);
+document.getElementById('calcBtn')?.addEventListener('click', calcROI);
 
-  /* ---------- Mirror Links (kept) ---------- */
+/* ---------- Mirror Links ---------- */
 const MIRROR_LINK_PLACEHOLDERS = [
   { label: "StreamEast", url: "https://www.streameast100.com/" },
   { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
@@ -399,33 +397,15 @@ const MIRROR_LINK_PLACEHOLDERS = [
 ];
 
 /* ---------- Helpers ---------- */
-function parseISO(s){
-  if(!s) return null;
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
-}
-function isToday(iso){
-  const d = parseISO(iso);
-  if(!d) return false;
-  const n = new Date();
-  return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
-}
-function shouldReveal(kickoffIso){
-  const d = parseISO(kickoffIso);
-  if(!d) return false;
-  return Date.now() >= (d.getTime() - REVEAL_BEFORE_MS);
-}
+function parseISO(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
+function isToday(iso){ const d=parseISO(iso); if(!d) return false; const n=new Date(); return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate(); }
+function shouldReveal(kickoffIso){ const d=parseISO(kickoffIso); if(!d) return false; return Date.now() >= (d.getTime() - REVEAL_BEFORE_MS); }
 
-/* ---------- Landing UI using local FIXTURES ---------- */
+/* ---------- Landing UI ---------- */
 function loadLocalFixturesLanding(){
-  // only today's fixtures
-  const todayFixtures = FIXTURES.filter(f => isToday(f.dateISO)).map(f => {
-    return {
-      ...f,
-      kickoffMs: parseISO(f.dateISO)?.getTime() || null
-    };
-  }).sort((a,b) => (a.kickoffMs||0)-(b.kickoffMs||0));
-
+  const todayFixtures = FIXTURES.filter(f => isToday(f.dateISO))
+    .map(f => ({...f, kickoffMs: parseISO(f.dateISO)?.getTime() || null}))
+    .sort((a,b) => (a.kickoffMs||0)-(b.kickoffMs||0));
   renderLandingUI(todayFixtures);
   return todayFixtures;
 }
@@ -433,6 +413,8 @@ function loadLocalFixturesLanding(){
 function renderLandingUI(fixtures){
   const sel = document.getElementById('streamSelect');
   const wrap = document.getElementById('thumbList');
+  if(!sel || !wrap) return;
+
   sel.innerHTML = "";
   wrap.innerHTML = "";
   wrap.style.display = "grid";
@@ -448,20 +430,16 @@ function renderLandingUI(fixtures){
   fixtures.forEach((fx,i)=>{
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = `[${fx.league}] ${fx.homeName} vs ${fx.awayName}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '');
+    opt.textContent = `[${fx.league}] ${fx.homeName} vs ${fx.awayName} • ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
     sel.appendChild(opt);
 
     const card = document.createElement('div'); card.className='card';
-    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'TBA';
-    const homeLogo = fx.homeLogo || PLACEHOLDER_IFRAME;
-    const awayLogo = fx.awayLogo || PLACEHOLDER_IFRAME;
-
     card.innerHTML = `
-      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
+      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div>
       <div class="logos">
-        <img src="${homeLogo}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
+        <img src="${fx.homeLogo}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
         <div class="vsline">VS</div>
-        <img src="${awayLogo}" alt="${fx.awayName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
+        <img src="${fx.awayLogo}" alt="${fx.awayName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
       </div>
       <div class="title">${fx.homeName} vs ${fx.awayName}</div>
     `;
@@ -483,45 +461,45 @@ function renderLandingUI(fixtures){
 
 function renderLandingPreview(fx){
   const preview = document.getElementById('matchPreview');
+  if(!preview) return;
   preview.style.display = 'flex';
   const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
   const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
   const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
-  const availabilityText = reveal ? 'Live stream (if provided)' : 'Real live streams will be available 30 mins before start';
-  const broadcaster = fx.raw?.Broadcast || fx.raw?.TV || fx.status || 'TBA';
+  const availabilityText = reveal ? 'Live stream (if provided)' : 'Streams available 30 mins before start';
 
   preview.innerHTML = `
-    <div class="thumb"><img src="${fx.homeLogo || PLACEHOLDER_IFRAME}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'"></div>
+    <div class="thumb"><img src="${fx.homeLogo}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'"></div>
     <div class="meta">
       <div style="font-weight:700; font-size:1.05rem">${fx.homeName} vs ${fx.awayName}</div>
       <div class="muted">${fx.league} • ${when}</div>
-      <div style="margin-top:6px"><span class="pill">Broadcaster: ${broadcaster}</span></div>
       <div style="margin-top:6px; color:#f8c04a; font-weight:600">${availabilityText}</div>
       <div class="iframe-box" style="margin-top:10px">${embedHtml}</div>
     </div>
   `;
 }
 
-/* ---------- Download / email gate (same logic) ---------- */
+/* ---------- Download / email gate ---------- */
 function requestEmailGate(){ document.getElementById("emailInline").style.display="block"; }
 document.getElementById("downloadTrigger")?.addEventListener('click', requestEmailGate);
 document.getElementById("confirmDownload")?.addEventListener('click', ()=>{
   const sel = document.getElementById('streamSelect');
   const idx = parseInt(sel.value,10);
-  if(isNaN(idx)) { alert('Please select an event first.'); return; }
+  if(isNaN(idx)) return alert('Please select an event first.');
   const email = (document.getElementById('userEmail').value||"").trim();
-  if(!/^\S+@\S+\.\S+$/.test(email)){ alert("Please enter a valid email."); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)) return alert("Please enter a valid email.");
   const KEY = "scp_trial_" + email.toLowerCase().replace(/\W/g,'');
-  if(localStorage.getItem(KEY)){ alert("This email already used the one-time free download on this device."); return; }
+  if(localStorage.getItem(KEY)) return alert("This email already used the one-time free download.");
   const fixtures = loadLocalFixturesLanding();
   const fx = fixtures[idx];
   const ad = document.getElementById('adCode')?.value || '';
   const include = document.getElementById('includeLinks')?.checked || false;
   const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
   const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" style="width:100%;height:70vh;border:0" allowfullscreen></iframe>`;
-  const linksBlock = include ? `<div class="links"><ul>${(window.MIRROR_LINK_PLACEHOLDERS||[]).map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><h1>${fx.homeName} vs ${fx.awayName}</h1>${embedHtml}<div>${ad}</div>${linksBlock}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${fx.homeName.replace(/\s+/g,'_')}_vs_${fx.awayName.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const linksBlock = include ? `<div class="links"><ul>${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${fx.homeName} vs ${fx.awayName}</h1>${embedHtml}<div>${ad}</div>${linksBlock}</body></html>`;
+  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`${fx.homeName.replace(/\s+/g,'_')}_vs_${fx.awayName.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   localStorage.setItem(KEY,"1");
   document.getElementById('emailInline').style.display = 'none';
 });
@@ -529,9 +507,10 @@ document.getElementById("confirmDownload")?.addEventListener('click', ()=>{
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', ()=> {
   loadLocalFixturesLanding();
-  setInterval(()=> loadLocalFixturesLanding(), 60*1000); // refresh every minute in case reveal time passes
+  setInterval(loadLocalFixturesLanding, 60*1000);
 });
 </script>
+
 
 
 
