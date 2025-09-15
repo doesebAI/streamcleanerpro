@@ -274,6 +274,43 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   loadLocalDashboard().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
   setInterval(()=> loadLocalDashboard().catch(()=>{}), 60*1000);
 });
+  let user = null;
+
+async function initAuth() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    user = data.session?.user || null;
+    if(user){
+      document.getElementById("profileEmail").textContent = user.email;
+      document.getElementById("supportEmail").value = user.email;
+    } else {
+      window.location.href = "/login.html";
+    }
+  } catch(e) {
+    console.warn("supabase init error", e);
+  }
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await supabase.auth.signOut();
+  window.location.reload();
+});
+
+document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
+  const newEmail = document.getElementById("updateEmail").value.trim();
+  const newPass = document.getElementById("updatePassword").value.trim();
+  if(!user) return alert("No user logged in");
+  if(newEmail){
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if(error) return alert(error.message);
+    document.getElementById("profileEmail").textContent = newEmail;
+  }
+  if(newPass){
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    if(error) return alert(error.message);
+  }
+  alert("Profile updated!");
+});
 </script>
 
 
