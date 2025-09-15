@@ -130,6 +130,19 @@ const supabase = supabase.createClient(
   "https://rfuilglpyamrjbtkacqw.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
 );
+  /* ---------- Mirror Links (kept) ---------- */
+const MIRROR_LINK_PLACEHOLDERS = [
+  { label: "StreamEast", url: "https://www.streameast100.com/" },
+  { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
+  { label: "FOOTYBITE", url: "https://www.footybite.to/" },
+  { label: "NFLBITE", url: "https://www.nflbite.to/" },
+  { label: "NBABITE", url: "https://reddit.nbabite.to/" },
+  { label: "SPORTSURGE", url: "https://sportsurge100.com/" },
+  { label: "HESGOAL", url: "https://hesgoalfree.com/" },
+  { label: "SOCCER STREAMS", url: "https://soccer-1000.com/" },
+  { label: "F1 STREAMS", url: "https://www.f1streamsfree.com/" },
+  { label: "Hoofoot", url: "https://hufoot.com/" }
+];
 let user = null;
 async function initAuth() {
   try{
