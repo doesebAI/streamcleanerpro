@@ -69,9 +69,8 @@
     <h1><i class="fas fa-bolt"></i> Dashboard</h1>
     <nav>
       <a href="#ops"><i class="fas fa-satellite-dish"></i> Operations</a>
-      <a href="#tutorials"><i class="fas fa-video"></i> Tutorials</a>
       <a href="#profile"><i class="fas fa-user-circle"></i> Profile</a>
-      <a href="#support"><i class="fas fa-comment-dots"></i> Support</a>
+       <a href="#support"><i class="fas fa-dots"></i> Support</a>
       <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
   </aside>
@@ -97,10 +96,7 @@
       </div>
     </div>
 
-    <section id="tutorials" class="dashboard-card">
-      <h2><i class="fas fa-video"></i> Tutorials</h2>
-      <p>Quick how-tos coming soon.</p>
-    </section>
+   
 
     <section id="profile" class="dashboard-card">
       <h2><i class="fas fa-user-circle"></i> Profile</h2>
@@ -124,13 +120,17 @@
   </main>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ---------- Supabase Auth Setup (kept) ---------- */
-const supabase = supabase.createClient(
+/* ---------- Supabase Auth Setup ---------- */
+const supabase = window.supabase.createClient(
   "https://rfuilglpyamrjbtkacqw.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
 );
-  /* ---------- Mirror Links (kept) ---------- */
+
+let user = null;
+
+/* ---------- Mirror Links ---------- */
 const MIRROR_LINK_PLACEHOLDERS = [
   { label: "StreamEast", url: "https://www.streameast100.com/" },
   { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
@@ -143,22 +143,8 @@ const MIRROR_LINK_PLACEHOLDERS = [
   { label: "F1 STREAMS", url: "https://www.f1streamsfree.com/" },
   { label: "Hoofoot", url: "https://hufoot.com/" }
 ];
-let user = null;
-async function initAuth() {
-  try{
-    const { data } = await supabase.auth.getSession();
-    user = data.session?.user || null;
-    if(user){
-      document.getElementById("profileEmail").textContent = user.email;
-      document.getElementById("supportEmail").value = user.email;
-    } else {
-      window.location.href = "/login.html";
-    }
-  }catch(e){ console.warn("supabase init error", e); }
-}
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{ await supabase.auth.signOut(); window.location.reload(); });
 
-/* ---------- Local fixtures for dashboard (edit here) ---------- */
+/* ---------- Fixtures ---------- */
 const DASH_FIXTURES = [
   {
     FixtureKey: "2025-09-13-brentford-vs-chelsea",
@@ -171,118 +157,27 @@ const DASH_FIXTURES = [
     iframeHtml: null,
     status: "Upcoming"
   }
-  // add more...
+  // add more fixtures here
 ];
 
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
 const REVEAL_BEFORE_MS = 30 * 60 * 1000;
+let currentFixtures = [];
 
+/* ---------- Helpers ---------- */
 function parseISO(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
 function isToday(iso){ const d=parseISO(iso); if(!d) return false; const n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
 function shouldReveal(kickoffIso){ const d=parseISO(kickoffIso); if(!d) return false; return Date.now() >= (d.getTime() - REVEAL_BEFORE_MS); }
 
-/* ---------- Dashboard UI (uses DASH_FIXTURES) ---------- */
-async function loadLocalDashboard(){
-  const fixtures = DASH_FIXTURES.filter(f=>isToday(f.dateISO)).map(f=>({...f, kickoffMs: parseISO(f.dateISO)?.getTime()||null})).sort((a,b)=>(a.kickoffMs||0)-(b.kickoffMs||0));
-  renderDashboardUI(fixtures);
-  return fixtures;
-}
-
-function renderDashboardUI(fixtures){
-  const sel = document.getElementById('streamSelect');
-  const wrap = document.getElementById('thumbList');
-  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
-  wrap.innerHTML = "";
-  wrap.style.display = 'grid';
-  wrap.style.gridTemplateColumns = 'repeat(auto-fill,minmax(220px,1fr))';
-  wrap.style.gap = '12px';
-
-  if(!fixtures.length){
-    sel.innerHTML = `<option value="">No fixtures</option>`;
-    wrap.innerHTML = '<p>No fixtures found</p>';
-    return;
-  }
-
-  fixtures.forEach((fx,i)=>{
-    const opt = document.createElement('option'); opt.value = i;
-    opt.textContent = `[${fx.league}] ${fx.homeName} vs ${fx.awayName}` + (fx.dateISO ? ` • ${new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '');
-    sel.appendChild(opt);
-
-    const whenText = fx.dateISO ? new Date(fx.dateISO).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'TBA';
-    const homeLogo = fx.homeLogo || PLACEHOLDER_IFRAME;
-    const awayLogo = fx.awayLogo || PLACEHOLDER_IFRAME;
-
-    const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `
-      <div class="top"><span>${fx.league}</span><span class="badge-time">• ${whenText}</span></div>
-      <div class="logos">
-        <img src="${homeLogo}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
-        <div class="vsline">VS</div>
-        <img src="${awayLogo}" alt="${fx.awayName}" onerror="this.src='${PLACEHOLDER_IFRAME}'">
-      </div>
-      <div class="title">${fx.homeName} vs ${fx.awayName}</div>
-      <div style="margin-top:6px;font-size:12px">Div-block: ${fx.iframeHtml ? 'Yes' : 'No'}</div>
-    `;
-    card.addEventListener('click', ()=> { sel.value = i; showDashboardPreview(fx); });
-    wrap.appendChild(card);
-  });
-
-  sel.addEventListener('change', ()=> {
-    const idx = parseInt(sel.value,10);
-    if(!isNaN(idx)) showDashboardPreview(fixtures[idx]);
-  });
-  showDashboardPreview(fixtures[0]);
-}
-
-function showDashboardPreview(fx){
-  const preview = document.getElementById('matchPreview'); preview.style.display = 'block';
-  const when = fx.dateISO ? new Date(fx.dateISO).toLocaleString() : 'TBA';
-  const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
-  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
-  const availText = reveal ? 'Live stream (if provided)' : 'Real live streams will be available 30 mins before start';
-  preview.innerHTML = `
-    <div class="thumb"><img src="${fx.homeLogo||PLACEHOLDER_IFRAME}" alt="${fx.homeName}" onerror="this.src='${PLACEHOLDER_IFRAME}'"></div>
-    <div class="meta">
-      <div style="font-weight:700">${fx.homeName} vs ${fx.awayName}</div>
-      <div class="muted">${fx.league} • ${when}</div>
-      <div style="margin-top:6px"><span class="pill">${availText}</span></div>
-      <div class="iframe-box" style="margin-top:10px">${embedHtml}</div>
-    </div>
-  `;
-}
-
-/* ---------- Export (download) ---------- */
-document.getElementById('downloadBtn')?.addEventListener('click', ()=> {
-  const sel = document.getElementById('streamSelect');
-  const idx = parseInt(sel.value,10);
-  if(isNaN(idx)) return alert('Select a match first.');
-  const fx = DASH_FIXTURES.filter(f=>isToday(f.dateISO)).sort((a,b)=>(parseISO(a.dateISO)?.getTime()||0)-(parseISO(b.dateISO)?.getTime()||0))[idx];
-  if(!fx) return alert('Match not found.');
-  const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
-  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" style="width:100%;height:70vh;border:0" allowfullscreen></iframe>`;
-  const ad = document.getElementById('adCode')?.value || '';
-  const include = document.getElementById('includeLinks')?.checked || false;
-  const linksBlock = include ? `<div class="links"><ul>${(window.MIRROR_LINK_PLACEHOLDERS||[]).map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${fx.homeName} vs ${fx.awayName}</h1>${embedHtml}<div>${ad}</div>${linksBlock}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${fx.homeName.replace(/\s+/g,'_')}_vs_${fx.awayName.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  document.getElementById('fileStatus').textContent = '✅ File downloaded.';
-});
-
-/* ---------- Init ---------- */
-document.addEventListener('DOMContentLoaded', async ()=>{
-  await initAuth();
-  loadLocalDashboard().catch(e => { console.error(e); document.getElementById('thumbList').innerHTML = '<p>Load failed</p>'; });
-  setInterval(()=> loadLocalDashboard().catch(()=>{}), 60*1000);
-});
-  let user = null;
-
+/* ---------- Auth ---------- */
 async function initAuth() {
   try {
     const { data } = await supabase.auth.getSession();
     user = data.session?.user || null;
     if(user){
-      document.getElementById("profileEmail").textContent = user.email;
-      document.getElementById("supportEmail").value = user.email;
+      document.getElementById("profileEmail")?.textContent = user.email;
+      const supportField = document.getElementById("supportEmail");
+      if(supportField) supportField.value = user.email;
     } else {
       window.location.href = "/login.html";
     }
@@ -291,15 +186,16 @@ async function initAuth() {
   }
 }
 
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+document.getElementById("logoutBtn")?.addEventListener("click", async ()=>{
   await supabase.auth.signOut();
   window.location.reload();
 });
 
-document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
-  const newEmail = document.getElementById("updateEmail").value.trim();
-  const newPass = document.getElementById("updatePassword").value.trim();
+document.getElementById("saveProfileBtn")?.addEventListener("click", async ()=>{
   if(!user) return alert("No user logged in");
+  const newEmail = document.getElementById("updateEmail")?.value.trim();
+  const newPass = document.getElementById("updatePassword")?.value.trim();
+
   if(newEmail){
     const { error } = await supabase.auth.updateUser({ email: newEmail });
     if(error) return alert(error.message);
@@ -310,6 +206,94 @@ document.getElementById("saveProfileBtn").addEventListener("click", async ()=>{
     if(error) return alert(error.message);
   }
   alert("Profile updated!");
+});
+
+/* ---------- Dashboard UI ---------- */
+async function loadLocalDashboard(){
+  currentFixtures = DASH_FIXTURES.filter(f=>isToday(f.dateISO))
+    .map(f=>({...f, kickoffMs: parseISO(f.dateISO)?.getTime()||null}))
+    .sort((a,b)=>(a.kickoffMs||0)-(b.kickoffMs||0));
+  renderDashboardUI(currentFixtures);
+}
+
+function renderDashboardUI(fixtures){
+  const sel = document.getElementById('streamSelect');
+  const wrap = document.getElementById('thumbList');
+  if(!sel || !wrap) return;
+
+  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
+  wrap.innerHTML = "";
+
+  if(!fixtures.length){
+    sel.innerHTML = `<option value="">No fixtures</option>`;
+    wrap.innerHTML = '<p>No fixtures found</p>';
+    return;
+  }
+
+  fixtures.forEach((fx,i)=>{
+    const opt = document.createElement('option'); opt.value = i;
+    opt.textContent = `[${fx.league}] ${fx.homeName} vs ${fx.awayName}`;
+    sel.appendChild(opt);
+
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `
+      <div class="title">${fx.homeName} vs ${fx.awayName}</div>
+      <div style="font-size:12px">League: ${fx.league}</div>
+    `;
+    card.addEventListener('click', ()=> { sel.value = i; showDashboardPreview(fx); });
+    wrap.appendChild(card);
+  });
+
+  showDashboardPreview(fixtures[0]);
+}
+
+function showDashboardPreview(fx){
+  const preview = document.getElementById('matchPreview');
+  if(!preview) return;
+  preview.style.display = 'block';
+  const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
+  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
+  preview.innerHTML = `
+    <div><b>${fx.homeName} vs ${fx.awayName}</b></div>
+    <div>${fx.league} • ${new Date(fx.dateISO).toLocaleString()}</div>
+    <div>${embedHtml}</div>
+  `;
+}
+
+/* ---------- Export ---------- */
+document.getElementById('downloadBtn')?.addEventListener('click', ()=> {
+  const sel = document.getElementById('streamSelect');
+  const idx = parseInt(sel?.value,10);
+  if(isNaN(idx)) return alert('Select a match first.');
+  const fx = currentFixtures[idx];
+  if(!fx) return alert('Match not found.');
+
+  const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
+  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
+  const ad = document.getElementById('adCode')?.value || '';
+  const include = document.getElementById('includeLinks')?.checked || false;
+  const linksBlock = include ? `<div><ul>${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}">${l.label}</a></li>`).join('')}</ul></div>` : '';
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${fx.homeName} vs ${fx.awayName}</h1>${embedHtml}<div>${ad}</div>${linksBlock}</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`${fx.homeName.replace(/\s+/g,'_')}_vs_${fx.awayName.replace(/\s+/g,'_')}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  const status=document.getElementById('fileStatus');
+  if(status) status.textContent='✅ File downloaded.';
+});
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await initAuth();
+  await loadLocalDashboard();
+  setInterval(loadLocalDashboard, 60*1000);
 });
 </script>
 
