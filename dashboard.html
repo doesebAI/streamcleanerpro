@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Stream Cleaner Pro – Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -16,27 +16,22 @@
     .dashboard-content { flex: 1; padding: 2rem 3rem; display: flex; flex-direction: column; gap: 2rem; background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0); }
     .dashboard-card { background: white; padding: 1.25rem; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     h2 i { margin-right: 0.5rem; color: #3b82f6; }
-    .stream-dropdown, .ad-code-input, input, textarea { width: 100%; margin-top: .6rem; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; }
-    .ad-code-input { height: 160px; resize: vertical; }
+    .stream-dropdown, input, textarea, select { width: 100%; margin-top: .6rem; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; }
     button { background: #3b82f6; color: white; border: none; padding: 0.9rem 1.2rem; border-radius: 0.5rem; font-size: 1rem; margin-top: .5rem; cursor: pointer; }
     button:hover { background: #2563eb; }
     .file-status { font-size: 0.9rem; color: #64748b; margin-top: 0.5rem; }
-
-    .thumbs{ display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
-    .card{ position:relative; overflow:hidden; border-radius:12px; background:#0b1220; color:#e5e7eb; box-shadow:0 6px 20px rgba(0,0,0,.08); cursor:pointer }
-    .card .top{ display:flex; align-items:center; gap:10px; padding:8px 10px; background: linear-gradient(135deg, #5a0b0b, #102449); font-size:.82rem; font-weight:600; }
-    .logos{ display:flex; justify-content:space-between; align-items:center; padding:20px 14px 14px; background: linear-gradient(90deg,#2a0f12 25%, #0d2b58 75%); min-height:72px;}
-    .logos img{ width:42px; height:42px; object-fit:contain; background:#fff; border-radius:50%; padding:4px;}
-    .vsline{ position:absolute; top:52px; left:50%; transform:translateX(-50%); font-weight:900 }
-    .title{ padding:8px 10px; font-size:.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:#0f162c; }
-    .countdown{position:absolute; top:8px; right:9px; padding:2px 8px; background:#111827; border-radius:999px; font-size:.72rem; border:1px solid #1f2937}
-    .preview{ background:#0b1220; border:1px solid #111827; border-radius:12px; padding:12px; display:flex; gap:12px; color:#e5e7eb; }
-    .preview .thumb{ width:220px; border-radius:10px; overflow:hidden; background:#111 }
-    .preview .thumb img{ width:100% }
-    .preview .meta{ flex:1 }
-    .pill{ display:inline-block; padding:6px 10px; background:#0f162c; border:1px solid #1f2937; border-radius:999px; margin:4px 6px 0 0; font-size:.8rem; }
-    .iframe-box iframe{ width:100%; height:60vh; border:0; border-radius:10px; background:#000 }
-
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin: 0.75rem 0; }
+    .toggle-row label { font-weight: 500; }
+    .muted { color: #64748b; font-size: 0.85rem; margin-top: 0.25rem; }
+    .balance { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 0.95rem; }
+    th { background: #f1f5f9; }
+    .status-paid { color: green; font-weight: 600; }
+    .status-pending { color: orange; font-weight: 600; }
+    .status-rejected { color: red; font-weight: 600; }
+    input[type="range"] { width: 100%; margin: 0.5rem 0; }
+    .small-muted { font-size: 0.9rem; color: #64748b; margin-top: 0.25rem; }
     @media screen and (max-width: 900px) {
       .dashboard { flex-direction: column; }
       .sidebar { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-around; }
@@ -44,60 +39,196 @@
       .dashboard-content { padding: 1.25rem; }
       button { width: 100%; }
     }
-  #dashList {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+    .dashboard-card canvas {
+  min-height: 300px !important;
+  width: 100% !important;
 }
-.dash-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 14px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.team-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
+.stats-table table { width: 100%; border-collapse: collapse; }
+.stats-table th { background: #f8fafc; padding: 12px; text-align: left; }
+.stats-table td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+.bar-wrapper { background: #f1f5f9; border-radius: 4px; height: 24px; position: relative; }
+.bar { position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; padding: 0 8px; line-height: 24px; color: white; }
+.bar.traffic { background: #2563eb; }
+.bar.revenue { background: #16a34a; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <section class="dashboard">
   <aside class="sidebar">
     <h1><i class="fas fa-bolt"></i> Dashboard</h1>
     <nav>
-      <a href="#ops"><i class="fas fa-satellite-dish"></i> Operations</a>
+      <a href="#tool"><i class="fas fa-tv"></i> Stream Tool</a>
+      <a href="#performance"><i class="fas fa-chart-line"></i> Performance</a>
+      <a href="#withdrawals"><i class="fas fa-wallet"></i> Withdrawals</a>
       <a href="#profile"><i class="fas fa-user-circle"></i> Profile</a>
-       <a href="#support"><i class="fas fa-dots"></i> Support</a>
+      <a href="#support"><i class="fas fa-comment-dots"></i> Support</a>
       <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
   </aside>
 
   <main class="dashboard-content">
-    <div id="ops" class="dashboard-card">
-      <h2><i class="fas fa-tv"></i> Live Football</h2>
-      <p class="muted">Pick an event below to preview broadcasters and export a ready file.</p>
+
+    <!-- Stream Tool -->
+    <div id="tool" class="dashboard-card">
+      <h2><i class="fas fa-tv"></i> Stream Tool</h2>
+
+      <!-- Step 1 -->
+      <h3>Step 1: Select Stream</h3>
       <select id="streamSelect" class="stream-dropdown"><option>Loading…</option></select>
-      <div id="thumbList" class="thumbs" style="margin-top:10px"></div>
-      <div id="matchPreview" class="preview" style="display:none; margin-top:10px"></div>
+      <div id="thumbList" style="margin-top:10px"></div>
+      <div id="matchPreview" class="preview" style="display:none;"></div>
 
-      <h3 style="margin-top:12px"><i class="fas fa-bullhorn"></i> Ad Code</h3>
-      <textarea id="adCode" class="ad-code-input" placeholder="Paste your ad script here..."></textarea>
+      <!-- Step 2 -->
+      <h3 style="margin-top:16px">Step 2: Enable Monetization</h3>
+      <div class="toggle-row">
+        <label>Enable Monetization</label>
+        <input type="checkbox" id="enableMonetization"/>
+      </div>
 
+      <div id="monetizationOptions" style="display:none; margin-top:1rem">
+        <div class="toggle-row">
+          <label>CPAGrip Locker</label>
+          <input type="checkbox" id="enableCpagrip" />
+        </div>
+        <p class="muted">Activates after 45 mins of stream.</p>
+
+        <div class="toggle-row">
+          <label>Display Ads</label>
+          <input type="checkbox" id="enableDisplayAds" />
+        </div>
+        <p class="muted">Steady earnings for consistent traffic.</p>
+
+        <div class="toggle-row">
+          <label>Popunders</label>
+          <input type="checkbox" id="enablePopunders" />
+        </div>
+        <p class="muted">High CPM but may annoy users.</p>
+
+        <div class="toggle-row">
+          <label>Preroll Ads</label>
+          <input type="checkbox" id="enablePrerolls" />
+        </div>
+        <p class="muted">Good CPM but can cause drop-off.</p>
+
+        <!-- Single overall slider -->
+        <div style="margin-top:1rem">
+          <div class="toggle-row">
+            <label>Overall: Satisfaction ↔ Earnings</label>
+            <div class="small-muted" id="optionsSelected">0 selected</div>
+          </div>
+          <input type="range" id="sliderOverall" min="0" max="100" value="0" disabled>
+          <div class="muted"><span id="satisfactionOverall">🙂 100</span> | <span id="earningsOverall">💵 0</span></div>
+        </div>
+      </div>
+      <h3 style="margin-top:16px">Step 3: Download Export</h3>
       <label style="display:block; margin-top:6px">
         <input id="includeLinks" type="checkbox"> Include optional links block in export
       </label>
 
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button id="downloadBtn">📥 Download HTML</button>
-        <span id="fileStatus" class="file-status">Waiting for export…</span>
-      </div>
+      <!-- Step 3 -->
+      <h3 style="margin-top:16px">Step 3: Download Export</h3>
+      <button id="downloadBtn">📥 Download HTML</button>
+      <span id="fileStatus" class="file-status">Waiting for export…</span>
     </div>
 
-   
+    <!-- Performance Section -->
+    <section id="performance" class="dashboard-card">
+      <h2><i class="fas fa-chart-line"></i> Performance Dashboard</h2>
+      
+      <!-- Traffic Stats -->
+      <h3>Weekly Traffic</h3>
+      <div class="stats-table">
+        <table>
+          <tr>
+            <th>Day</th>
+            <th>Traffic</th>
+          </tr>
+          <tr>
+            <td>Mon</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 48%">120</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Tue</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 60%">150</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Wed</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 72%">180</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Thu</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 80%">200</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Fri</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 84%">210</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Sat</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 92%">230</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Sun</td>
+            <td>
+              <div class="bar-wrapper">
+                <div class="bar traffic" style="width: 100%">1</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </section>
 
+    <!-- Withdrawals -->
+   <section id="withdrawals" class="dashboard-card">
+      <h2><i class="fas fa-wallet"></i> Withdrawals</h2>
+      <div class="balance">$0.00</div>
+      <p class="muted">Available Balance (Minimum $50 to withdraw)</p>
+      <h3>Earnings Breakdown</h3>
+      <table>
+        <tr><th>Source</th><th>Amount</th></tr>
+        <tr><td>CPAGrip</td><td>$0.00</td></tr>
+        <tr><td>Display Ads</td><td>$0.00</td></tr>
+        <tr><td>Popunders</td><td>$0.00</td></tr>
+        <tr><td>Preroll Ads</td><td>$0.00</td></tr>
+      </table>
+      <h3 style="margin-top:1.5rem">Request Withdrawal</h3>
+      <input type="number" placeholder="Amount (USD)"/>
+      <select><option>PayPal</option><option>Bank Transfer</option><option>Crypto</option></select>
+      <button>Request Withdrawal</button>
+      <h3 style="margin-top:1.5rem">Withdrawal History</h3>
+      <table><tr><th>Date</th><th>Amount</th><th>Method</th><th>Status</th></tr>
+        <tr><td colspan="4" class="muted">No withdrawals yet</td></tr>
+      </table>
+    </section>
+
+    <!-- Profile -->
     <section id="profile" class="dashboard-card">
       <h2><i class="fas fa-user-circle"></i> Profile</h2>
       <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
@@ -106,6 +237,7 @@
       <button id="saveProfileBtn">Update Profile</button>
     </section>
 
+    <!-- Support -->
     <section id="support" class="dashboard-card">
       <h2><i class="fas fa-comment-dots"></i> Support</h2>
       <form id="supportForm" action="https://formspree.io/f/xdkdywpq" method="POST">
@@ -117,13 +249,13 @@
         <button type="submit">Send Message</button>
       </form>
     </section>
+
   </main>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ---------- Supabase Auth Setup ---------- */
-const supabase = window.supabase.createClient(
+const supabase = window.supabase?.createClient?.(
   "https://rfuilglpyamrjbtkacqw.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I"
 );
@@ -148,16 +280,15 @@ const MIRROR_LINK_PLACEHOLDERS = [
 const DASH_FIXTURES = [
   {
     FixtureKey: "2025-09-13-brentford-vs-chelsea",
-    dateISO: "2025-09-13T19:00:00Z",
+    dateISO: "2025-09-13T19:00:00Z", 
     homeName: "Brentford",
     homeLogo: "https://totalsportek.army/assets2/images/premier/Brentford.png",
-    awayName: "Chelsea",
+    awayName: "Chelsea", 
     awayLogo: "https://totalsportek.army/assets2/images/premier/Chelsea.png",
     league: "Premier League",
     iframeHtml: null,
     status: "Upcoming"
   }
-  // add more fixtures here
 ];
 
 const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
@@ -168,45 +299,6 @@ let currentFixtures = [];
 function parseISO(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
 function isToday(iso){ const d=parseISO(iso); if(!d) return false; const n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
 function shouldReveal(kickoffIso){ const d=parseISO(kickoffIso); if(!d) return false; return Date.now() >= (d.getTime() - REVEAL_BEFORE_MS); }
-
-/* ---------- Auth ---------- */
-async function initAuth() {
-  try {
-    const { data } = await supabase.auth.getSession();
-    user = data.session?.user || null;
-    if(user){
-      document.getElementById("profileEmail")?.textContent = user.email;
-      const supportField = document.getElementById("supportEmail");
-      if(supportField) supportField.value = user.email;
-    } else {
-      window.location.href = "/login.html";
-    }
-  } catch(e) {
-    console.warn("supabase init error", e);
-  }
-}
-
-document.getElementById("logoutBtn")?.addEventListener("click", async ()=>{
-  await supabase.auth.signOut();
-  window.location.reload();
-});
-
-document.getElementById("saveProfileBtn")?.addEventListener("click", async ()=>{
-  if(!user) return alert("No user logged in");
-  const newEmail = document.getElementById("updateEmail")?.value.trim();
-  const newPass = document.getElementById("updatePassword")?.value.trim();
-
-  if(newEmail){
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
-    if(error) return alert(error.message);
-    document.getElementById("profileEmail").textContent = newEmail;
-  }
-  if(newPass){
-    const { error } = await supabase.auth.updateUser({ password: newPass });
-    if(error) return alert(error.message);
-  }
-  alert("Profile updated!");
-});
 
 /* ---------- Dashboard UI ---------- */
 async function loadLocalDashboard(){
@@ -260,6 +352,188 @@ function showDashboardPreview(fx){
   `;
 }
 
+/* ---------- UI refs ---------- */
+const enableMonetization = document.getElementById("enableMonetization");
+const monetizationOptionsEl = document.getElementById("monetizationOptions");
+const sliderOverall = document.getElementById("sliderOverall");
+const satOverall = document.getElementById("satisfactionOverall");
+const earnOverall = document.getElementById("earningsOverall");
+const optionsSelectedEl = document.getElementById("optionsSelected");
+
+/* ---------- Option defaults (used to derive target earnings) ---------- */
+const optionDefaults = {
+  enableCpagrip: 70,
+  enableDisplayAds: 50,
+  enablePopunders: 30,
+  enablePrerolls: 60
+};
+const optionIds = Object.keys(optionDefaults);
+
+/* ---------- Small helpers ---------- */
+function getSatisfactionEmoji(value) {
+  if (value > 70) return "🙂";
+  if (value > 40) return "😐";
+  return "😡";
+}
+function getEarningsEmoji(value) {
+  if (value > 70) return "🤑";
+  if (value > 40) return "💰";
+  return "💵";
+}
+function updateOverallDisplay(earnings) {
+  const e = Math.max(0, Math.min(100, Math.round(earnings)));
+  const satisfaction = 100 - e;
+  satOverall.textContent = `${getSatisfactionEmoji(satisfaction)} ${satisfaction}`;
+  earnOverall.textContent = `${getEarningsEmoji(e)} ${e}`;
+}
+
+/* animate slider to target (smooth) */
+function animateSliderTo(sliderEl, target, duration = 400, onUpdate) {
+  cancelAnimationFrame(sliderEl._animFrame || 0);
+  const start = performance.now();
+  const from = parseInt(sliderEl.value, 10) || 0;
+  const diff = target - from;
+  if (diff === 0) {
+    if (onUpdate) onUpdate();
+    return;
+  }
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t;
+    const val = Math.round(from + diff * eased);
+    sliderEl.value = val;
+    if (onUpdate) onUpdate();
+    if (t < 1) {
+      sliderEl._animFrame = requestAnimationFrame(frame);
+    } else {
+      sliderEl.value = target;
+      if (onUpdate) onUpdate();
+    }
+  }
+  sliderEl._animFrame = requestAnimationFrame(frame);
+}
+
+/* compute average default of selected options (0 if none) */
+function computeSelectedTarget() {
+  const selected = optionIds.filter(id => document.getElementById(id)?.checked);
+  if (selected.length === 0) return 0;
+  const sum = selected.reduce((s, id) => s + (optionDefaults[id] || 0), 0);
+  return Math.round(sum / selected.length);
+}
+
+/* refresh UI and slider state based on selected options and global toggle */
+function refreshOverallSliderState() {
+  const anySelected = optionIds.some(id => document.getElementById(id)?.checked);
+  optionsSelectedEl.textContent = `${optionIds.filter(id=>document.getElementById(id)?.checked).length} selected`;
+  const enabled = !!enableMonetization?.checked && anySelected;
+  if (!enabled) {
+    // disable and animate to 0
+    animateSliderTo(sliderOverall, 0, 350, () => updateOverallDisplay(parseInt(sliderOverall.value || 0, 10)));
+    sliderOverall.disabled = true;
+    return;
+  }
+  const target = computeSelectedTarget();
+  sliderOverall.disabled = false;
+  animateSliderTo(sliderOverall, target, 350, () => updateOverallDisplay(parseInt(sliderOverall.value || 0, 10)));
+}
+
+/* wire checkbox changes */
+optionIds.forEach(id => {
+  const cb = document.getElementById(id);
+  if (!cb) return;
+  cb.addEventListener("change", () => {
+    refreshOverallSliderState();
+  });
+});
+
+/* wire main enable toggle */
+enableMonetization?.addEventListener("change", () => {
+  monetizationOptionsEl.style.display = enableMonetization.checked ? "block" : "none";
+  refreshOverallSliderState();
+});
+
+/* slider input updates display live and stays within computed sensible bounds */
+sliderOverall?.addEventListener("input", () => {
+  updateOverallDisplay(parseInt(sliderOverall.value || 0, 10));
+});
+
+/* initialize visuals */
+updateOverallDisplay(parseInt(sliderOverall.value || 0, 10));
+refreshOverallSliderState();
+
+/* ---------- Charts ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize auth and dashboard
+  await initAuth();
+  await loadLocalDashboard();
+  setInterval(loadLocalDashboard, 60*1000);
+
+  // Register Chart.js components
+  Chart.register(Chart.controllers.line);
+  Chart.register(Chart.controllers.bar);
+  Chart.register(Chart.elements.point);
+  Chart.register(Chart.elements.line);
+  Chart.register(Chart.elements.bar);
+  Chart.register(Chart.scales.linear);
+  Chart.register(Chart.scales.category);
+
+  // Traffic Chart
+  const trafficCtx = document.getElementById('trafficChart')?.getContext('2d');
+  if (trafficCtx) {
+    new Chart(trafficCtx, {
+      type: 'line',
+      data: {
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets: [{
+          label: 'Traffic',
+          data: [120, 150, 180, 200, 170, 210, 250],
+          borderColor: '#2563eb',
+          tension: 0.3
+        },{
+          label: 'Revenue ($)',
+          data: [5, 8, 12, 15, 10, 18, 20],
+          borderColor: '#16a34a',
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        }
+      }
+    });
+  }
+
+  // Revenue Chart
+  const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
+  if (revenueCtx) {
+    new Chart(revenueCtx, {
+      type: 'bar',
+      data: {
+        labels: ['CPAGrip','Display Ads','Popunders','Prerolls'],
+        datasets: [{
+          label: 'Revenue ($)',
+          data: [20, 15, 30, 10],
+          backgroundColor: ['#2563eb','#3b82f6','#1e40af','#16a34a']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        }
+      }
+    });
+  }
+});
+
 /* ---------- Export ---------- */
 document.getElementById('downloadBtn')?.addEventListener('click', ()=> {
   const sel = document.getElementById('streamSelect');
@@ -288,20 +562,6 @@ document.getElementById('downloadBtn')?.addEventListener('click', ()=> {
   const status=document.getElementById('fileStatus');
   if(status) status.textContent='✅ File downloaded.';
 });
-
-/* ---------- Init ---------- */
-document.addEventListener('DOMContentLoaded', async ()=>{
-  await initAuth();
-  await loadLocalDashboard();
-  setInterval(loadLocalDashboard, 60*1000);
-});
 </script>
-
-
-
-
-
-
-
 </body>
 </html>
