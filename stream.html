@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Stream | Ozaistream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#0f172a; color:#fff; text-align:center; }
+    .player-wrapper { position:relative; max-width:960px; margin:20px auto; background:#000; border-radius:8px; overflow:hidden; }
+    iframe { width:100%; height:500px; border:0; }
+    .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.85); display:flex; justify-content:center; align-items:center; padding:20px; text-align:center; }
+    .overlay-content { background:#1e293b; padding:20px; border-radius:8px; max-width:500px; }
+    .overlay-content h2 { margin-bottom:10px; }
+    .muted { font-size:0.9rem; color:#94a3b8; margin-top:8px; }
+    .banner-note { margin-top:10px; font-size:0.85rem; color:#cbd5e1; }
+    .ads { display:flex; justify-content:space-between; flex-wrap:wrap; margin:20px auto; max-width:960px; gap:10px; }
+    .ads > div { flex:1; min-width:150px; text-align:center; }
+  </style>
+</head>
+<body>
+
+  <h1>⚽ Live Stream</h1>
+
+  <!-- Stream Player -->
+  <div class="player-wrapper" id="playerArea">
+    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+
+    <!-- Popup Overlay Message (CPM ad trigger) -->
+    <div class="overlay" id="popupOverlay" style="display:none;">
+      <div class="overlay-content">
+        <h2>⚠️ Please wait while your stream loads…</h2>
+        <p>We know ads can be annoying — but they help us keep this site free and running smoothly.</p>
+        <p>After this short ad finishes, you’ll get uninterrupted access to the stream.</p>
+        <p>🙏 Thank you for supporting us!</p>
+      </div>
+    </div>
+
+    <!-- Locker Overlay (after 45 min, CPL) -->
+    <div class="overlay" id="lockerOverlay" style="display:none;">
+      <div class="overlay-content">
+        <h2>🚨 Unlock Second Half</h2>
+        <p>To continue watching the second half of the match…</p>
+        <p>Our platform is powered by sponsors. To keep streams online without charging you, please complete one quick offer (survey, signup, or app download).</p>
+        <p>After completion, you’ll be immediately redirected back to the stream.</p>
+        <ul style="text-align:left; margin:15px auto; max-width:400px;">
+          <li>✅ Keeps Ozaistream alive</li>
+          <li>✅ 100% free for you</li>
+          <li>✅ Ensures future matches stay online</li>
+        </ul>
+        <!-- Locker Ad Code (CPL) -->
+        <script type="text/javascript" src="//pl27746943.revenuecpmgate.com/5c/d3/27/5cd32769a9f630ba7ed1e065baf60c51.js"></script>
+      </div>
+    </div>
+  </div>
+
+  <!-- Constant Reminder -->
+  <div class="banner-note">
+    💡 This service is free thanks to ads & sponsor support. We appreciate your patience 🙏
+  </div>
+
+  <!-- Ads Around Player -->
+  <div class="ads">
+    <div>
+      <!-- Banner Ad (CPI example) -->
+      <script type="text/javascript">
+        atOptions = {
+          'key' : 'c4a2653ec2e417f6bd397492d5ddafc8',
+          'format' : 'iframe',
+          'height' : 300,
+          'width' : 160,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/c4a2653ec2e417f6bd397492d5ddafc8/invoke.js"></script>
+    </div>
+    <div>
+      <!-- Native Banner -->
+      <script async="async" data-cfasync="false" src="//pl27715001.revenuecpmgate.com/1a20c7fc3c9d6fc9ea2119d089b4372f/invoke.js"></script>
+      <div id="container-1a20c7fc3c9d6fc9ea2119d089b4372f"></div>
+    </div>
+  </div>
+
+  <!-- Popunder Ad -->
+  <script type='text/javascript' src='//pl27746943.revenuecpmgate.com/5c/d3/27/5cd32769a9f630ba7ed1e065baf60c51.js'></script>
+
+  <script>
+    // Show popup ad overlay at start
+    window.addEventListener("load", () => {
+      const popup = document.getElementById("popupOverlay");
+      popup.style.display = "flex";
+      setTimeout(() => { popup.style.display = "none"; }, 15000); // 15 sec
+    });
+
+    // Trigger content locker after 45 min
+    setTimeout(() => {
+      document.getElementById("lockerOverlay").style.display = "flex";
+    }, 45 * 60 * 1000);
+  </script>
+
+</body>
+</html>
