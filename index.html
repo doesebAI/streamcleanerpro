@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OzaiStream</title>
+  <title>StreamPilot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* Your existing CSS remains exactly the same */
     :root{
       --brand:#2563eb;
       --brand-2:#1d4ed8;
@@ -53,7 +56,6 @@
       border-top: 1px solid #e0e0e0;
     }
 
-    /* --- Tool (full-viewport like hero) --- */
     .tool-section {
       min-height: 100vh;
       display:flex; flex-direction:column; justify-content:center; align-items:center;
@@ -76,12 +78,12 @@
     }
     .cta-btn { background: var(--brand); color: #fff; border: none; padding: 0.8rem 1.6rem; border-radius: 10px; cursor:pointer }
     .cta-btn:hover { background: var(--brand-2); }
-    .email-inline { margin-top: 1rem; display: none; }
+    .email-inline { margin-top: 1rem; }
     .email-inline input { width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; }
     .email-inline button { background: #22c55e; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; margin-top: 0.8rem; cursor: pointer; }
-    .email-inline button:hover { background: #16a34a; }
+    .email-inline button:disabled { background: #94a3b8; cursor: not-allowed; }
+    .email-inline button:hover:not(:disabled) { background: #16a34a; }
 
-    /* --- Thumbnails strip --- */
     .thumbs{
       display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:12px;
     }
@@ -107,7 +109,6 @@
     .title{ padding:10px 12px; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:#0f162c; }
     .countdown{position:absolute; top:9px; right:10px; padding:2px 8px; background:#111827; border-radius:999px; font-size:.75rem; border:1px solid #1f2937}
 
-    /* --- Preview panel --- */
     .preview{
       background:#0b1220; border:1px solid #111827; border-radius:12px; padding:12px;
       display:flex; gap:12px; color:#e5e7eb;
@@ -119,7 +120,6 @@
     .muted{ color:#94a3b8 }
     .iframe-box iframe{ width:100%; height:60vh; border:0; border-radius:10px; background:#000 }
 
-    /* ROI + Pricing (unchanged aside from full-height on ROI section) */
     #roi.section{
       min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;
     }
@@ -137,54 +137,46 @@
     .features { list-style: none; padding:0; margin:0 0 2rem; text-align:left; max-width:300px; margin-inline:auto; }
     .features li{ margin:.5rem 0 }
     footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #6b7280; }
-    /* Countdown animation */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.countdown { animation: blink 1s infinite; }
-
-/* Hover effect for cards (dashboard style) */
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-}
     
-#thumbList {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-.thumb-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 12px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.team-logo {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  margin-bottom: 8px;
-}
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .countdown { animation: blink 1s infinite; }
 
-
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    }
+      
+    #thumbList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .team-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-84RPD76V1Y"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-84RPD76V1Y');
-</script>
 <body>
 
 <nav>
-  <div style="font-weight: bold;">OzaiStream</div>
+  <div style="font-weight: bold; display:flex; gap:10px; align-items:center;">
+    <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700">SP</div>
+    <div style="font-weight:700; font-size:1.05rem;">StreamPilot</div>
+  </div>
   <div>
     <a href="#tool">Tool</a>
     <a href="#solution">Solution</a>
@@ -195,16 +187,15 @@
 
 <section class="tool-section" id="tool">
   <h2 style="margin-bottom:10px"><i class="fas fa-tools"></i> Build Your Stream Embed</h2>
-  <p class="muted" style="margin-top:0">Pick a live event, preview broadcasters, then export a ready file.</p>
+  <p class="muted" style="margin-top:0">Pick a live event, preview broadcasters, then receive your stream page by email.</p>
 
   <div class="tool-box">
     <div class="tool-grid">
-      <!-- left: selection + thumbnails -->
       <div>
         <div class="tool-step">
           <h3>Step 1: Select Event</h3>
           <select id="streamSelect">
-            <option value="">-- Loading today’s events --</option>
+            <option value="">-- Loading today's events --</option>
           </select>
         </div>
 
@@ -214,23 +205,22 @@
         </div>
       </div>
 
-      <!-- right: live preview -->
       <div>
         <div id="matchPreview" class="preview" style="display:none"></div>
 
-       
-
-       
-
         <div class="tool-step">
-          <h3>Step 2: Download HTML File</h3>
-          <button class="cta-btn" id="downloadTrigger">Download Embed</button>
-          <div class="email-inline" id="emailInline">
-            <p>Enter your email to unlock the one-time free download:</p>
-            <input type="email" id="userEmail" placeholder="you@example.com" />
-            <button id="confirmDownload">Confirm & Download</button>
-            
-          </div>
+          <h3>Step 2: Enter your email — we send your stream page</h3>
+
+          <form id="emailForm" class="email-inline" style="display:block" onsubmit="return handleEmailForm(event)">
+            <p style="margin:0 0 .5rem">Enter an active email to receive your personalized stream page link.</p>
+            <input type="email" id="userEmail" name="email" required placeholder="you@example.com" />
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+              <button id="sendEmailBtn" type="submit" style="flex:1;background:var(--brand);color:#fff;border-radius:8px;padding:.7rem;border:0;cursor:pointer">Send to My Email</button>
+              <div id="emailStatus" style="min-width:160px;color:var(--muted);font-size:.9rem;text-align:left"></div>
+            </div>
+          </form>
+
+          <small class="muted" style="display:block;margin-top:8px">We'll email you a secure link to the stream page — check spam if you don't see it. (Powered by StreamPilot)</small>
         </div>
       </div>
     </div>
@@ -248,19 +238,19 @@
    <div class="card-simple" style="width:250px; text-align:center">
     <i class="fas fa-dollar-sign" style="font-size:2rem; color:#3b82f6;"></i>
     <h3>Enable Monetization</h3>
-    <p>Affiliate pay to view walls, Advertisement revenue.</p>
+    <p>Monetization features available for paying clients via Dashboard.</p>
    </div>
     <div class="card-simple" style="width:250px; text-align:center">
       <i class="fas fa-download" style="font-size:2rem; color:#3b82f6;"></i>
-      <h3>Download HTML</h3>
-      <p>Get a ready-to-host HTML file.</p>
+      <h3>Receive by Email</h3>
+      <p>We'll send a secure stream page link to your inbox.</p>
     </div>
   </div>
 </section>
 
 <section class="section" id="roi">
   <h2>Profit & ROI Calculator</h2>
-  <p class="muted">Estimate how quickly you cover $25/mo and scale.</p>
+  <p class="muted">Estimate how quickly you cover subscription and scale.</p>
   <div class="roi-grid">
     <div class="card-simple">
       <h3 style="margin-top:0">Assumptions</h3>
@@ -311,21 +301,55 @@
   <h2><i class="fas fa-dollar-sign"></i> Pricing</h2>
   <div class="pricing-card">
     <h3>All-Inclusive Plan</h3>
-    <p class="price">$25/month</p>
+    <p class="price">$60/month</p>
     <ul class="features">
-      <li>✔ Unlimited streams to download</li>
-      <li>✔ Enable monetization</li>
-      <li>✔ Instant traffic</li>
-      <li>✔ Verified stream list</li>
-      <li>✔ Customizable Football website</li>
+      <li>✔ Access to verified live sports streams</li>
+<li>✔ Automatically monetized stream pages </li>
+<li>✔ Choose from high-speed hosting domains</li>
+<li>✔ Auto-assigned live stream link — no hosting needed</li>
+<li>✔ 100% ad revenue goes to you</li>
+<li>✔ Built-in ad formats: banners, native, popunder, content locker, smartlink</li>
+
+<li>✔ Real-time earnings dashboard & analytics</li>
+<li>✔ One-click launch — your stream goes live instantly</li>
+<li>✔ Professional & mobile-friendly page layout</li>
+<li>✔ PayPal withdrawals, low $30 threshold</li>
+<li>✔ StreamPilot branding for trust and conversion</li>
+<li>✔ Continuous stream feed updates </li>
+<li>✔ Unlimited streams per subscription</li>
+<li>✔ Traffic growth guidance</li>
+<li>✔ Constantly optimized for higher CPM and CTR</li>
     </ul>
-    <a href="https://ozaistream.gumroad.com/l/yctnse?wanted=true" target="_blank">
+    <a href="https://streampilot7.gumroad.com/l/yctnse" target="_blank">
     <button class="cta-btn">Subscribe Now</button>
     </a>
   </div>
 </section>
 
+<footer style="padding:2rem;text-align:center;color:var(--muted)">
+  © 2025 StreamPilot — Smart monetization for stream hosts.
+</footer>
+
 <script>
+// Initialize EmailJS with your public key
+emailjs.init("3bRIItOoD6_y_hsA6");
+
+// Initialize Supabase - KEYS WILL BE SET FROM NETLIFY ENVIRONMENT VARIABLES
+let supabase;
+
+// Function to initialize Supabase with environment variables
+function initializeSupabase() {
+  // These will be set by Netlify environment variables
+  const supabaseUrl = window.SUPABASE_URL || 'https://your-project.supabase.co';
+  const supabaseKey = window.SUPABASE_ANON_KEY || 'your-anon-key';
+  
+  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  console.log('Supabase initialized');
+}
+
+// Initialize Supabase when the page loads
+initializeSupabase();
+
 /* ---------- Manual fixtures ---------- */
 const FIXTURES = [
   {
@@ -353,7 +377,7 @@ const FIXTURES = [
 ];
 
 const PLACEHOLDER_IFRAME = "https://sportstvnow.org/games/stream2/";
-const REVEAL_BEFORE_MS = 30 * 60 * 1000; // 30 minutes
+const REVEAL_BEFORE_MS = 30 * 60 * 1000; // 30 minutes (preview reveal)
 
 /* ---------- ROI calc ---------- */
 function calcROI() {
@@ -375,20 +399,6 @@ function calcROI() {
   document.getElementById('beVisitors').innerText=beVisitors;
 }
 document.getElementById('calcBtn')?.addEventListener('click', calcROI);
-
-/* ---------- Mirror Links ---------- */
-const MIRROR_LINK_PLACEHOLDERS = [
-  { label: "StreamEast", url: "https://www.streameast100.com/" },
-  { label: "TOTALSPORTEK", url: "https://totalsportek.army/" },
-  { label: "FOOTYBITE", url: "https://www.footybite.to/" },
-  { label: "NFLBITE", url: "https://www.nflbite.to/" },
-  { label: "NBABITE", url: "https://reddit.nbabite.to/" },
-  { label: "SPORTSURGE", url: "https://sportsurge100.com/" },
-  { label: "HESGOAL", url: "https://hesgoalfree.com/" },
-  { label: "SOCCER STREAMS", url: "https://soccer-1000.com/" },
-  { label: "F1 STREAMS", url: "https://www.f1streamsfree.com/" },
-  { label: "Hoofoot", url: "https://hufoot.com/" }
-];
 
 /* ---------- Helpers ---------- */
 function parseISO(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
@@ -473,30 +483,194 @@ function renderLandingPreview(fx){
   `;
 }
 
-/* ---------- Download / email gate ---------- */
-function requestEmailGate(){ document.getElementById("emailInline").style.display="block"; }
-document.getElementById("downloadTrigger")?.addEventListener('click', requestEmailGate);
-document.getElementById("confirmDownload")?.addEventListener('click', ()=>{
+/* ---------- Supabase Email Gating ---------- */
+async function checkEmailUsage(email) {
+  if (!supabase) {
+    console.error('Supabase not initialized');
+    return { exists: false, usageCount: 0 };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('email, usage_count')
+      .eq('email', email)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Supabase error:', error);
+      return { exists: false, usageCount: 0 };
+    }
+
+    if (data) {
+      return { exists: true, usageCount: data.usage_count || 1 };
+    }
+
+    return { exists: false, usageCount: 0 };
+  } catch (error) {
+    console.error('Error checking email:', error);
+    return { exists: false, usageCount: 0 };
+  }
+}
+
+async function recordEmailUsage(email, fixtureName) {
+  if (!supabase) {
+    console.error('Supabase not initialized');
+    return false;
+  }
+
+  try {
+    const { data: existing } = await supabase
+      .from('leads')
+      .select('email, usage_count')
+      .eq('email', email)
+      .single();
+
+    if (existing) {
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          usage_count: (existing.usage_count || 1) + 1,
+          last_used: new Date().toISOString(),
+          last_fixture: fixtureName
+        })
+        .eq('email', email);
+
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('leads')
+        .insert({
+          email: email,
+          usage_count: 1,
+          first_used: new Date().toISOString(),
+          last_used: new Date().toISOString(),
+          last_fixture: fixtureName,
+          created_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error recording email usage:', error);
+    return false;
+  }
+}
+
+/* ---------- Email gating via EmailJS (inline) ---------- */
+async function handleEmailForm(evt) {
+  evt.preventDefault();
+  const emailInput = document.getElementById('userEmail');
+  const status = document.getElementById('emailStatus');
+  const sendBtn = document.getElementById('sendEmailBtn');
+  
+  status.style.color = 'var(--muted)';
+  status.textContent = 'Validating...';
+
+  const email = (emailInput.value || "").trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    status.style.color = 'red';
+    status.textContent = 'Please enter a valid email.';
+    return;
+  }
+
+  // Check if email has already been used
+  status.textContent = 'Checking access...';
+  sendBtn.disabled = true;
+
+  const emailCheck = await checkEmailUsage(email);
+  
+  if (emailCheck.exists && emailCheck.usageCount >= 1) {
+    status.style.color = 'red';
+    status.textContent = '❌ You have already used this tool. Each email can only be used once.';
+    sendBtn.disabled = false;
+    return;
+  }
+
+  // determine selected fixture
   const sel = document.getElementById('streamSelect');
-  const idx = parseInt(sel.value,10);
-  if(isNaN(idx)) return alert('Please select an event first.');
-  const email = (document.getElementById('userEmail').value||"").trim();
-  if(!/^\S+@\S+\.\S+$/.test(email)) return alert("Please enter a valid email.");
-  const KEY = "scp_trial_" + email.toLowerCase().replace(/\W/g,'');
-  if(localStorage.getItem(KEY)) return alert("This email already used the one-time free download.");
+  const idx = parseInt((sel?.value || ""), 10);
+  if (isNaN(idx)) {
+    status.style.color = 'red';
+    status.textContent = 'Please select a stream first.';
+    sendBtn.disabled = false;
+    return;
+  }
+
   const fixtures = loadLocalFixturesLanding();
   const fx = fixtures[idx];
-  const ad = document.getElementById('adCode')?.value || '';
-  const include = document.getElementById('includeLinks')?.checked || false;
+  if (!fx) {
+    status.style.color = 'red';
+    status.textContent = 'Selected stream not found.';
+    sendBtn.disabled = false;
+    return;
+  }
+
+  // Generate the downloadable HTML content - use safe concatenation to avoid template literal issues
   const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
-  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" style="width:100%;height:70vh;border:0" allowfullscreen></iframe>`;
-  const linksBlock = include ? `<div class="links"><ul>${MIRROR_LINK_PLACEHOLDERS.map(l=>`<li><a href="${l.url}" target="_blank">${l.label}</a></li>`).join('')}</ul></div>` : '';
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><h1>${fx.homeName} vs ${fx.awayName}</h1>${embedHtml}<div>${ad}</div>${linksBlock}</body></html>`;
-  const blob = new Blob([html], {type:'text/html'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=`${fx.homeName.replace(/\s+/g,'_')}_vs_${fx.awayName.replace(/\s+/g,'_')}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  localStorage.setItem(KEY,"1");
-  document.getElementById('emailInline').style.display = 'none';
-});
+  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen style="width:100%;height:100%;border:none;border-radius:8px;"></iframe>`;
+  
+  const htmlContent = '<!DOCTYPE html>\\n' +
+    '<html lang=\"en\">\\n' +
+    '<head>\\n' +
+    '  <meta charset=\"UTF-8\" />\\n' +
+    '  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\\n' +
+    '  <title>' + fx.homeName + ' vs ' + fx.awayName + ' – StreamPilot</title>\\n' +
+    '</head>\\n' +
+    '<body style=\"background:#0f172a;color:white;margin:0;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden;\">\\n' +
+    '  <div style=\"width:90%;max-width:1200px;\">' + embedHtml + '</div>\\n' +
+    '</body>\\n' +
+    '</html>';
+ 
+   // Create a downloadable link
+   const fileName = `${fx.homeName.replace(/\s+/g, '-')}-vs-${fx.awayName.replace(/\s+/g, '-')}.html`;
+   const blob = new Blob([htmlContent], { type: 'text/html' });
+   const downloadLink = URL.createObjectURL(blob);
+
+  // show sending state
+  sendBtn.disabled = true;
+  const originalText = sendBtn.innerHTML;
+  sendBtn.innerHTML = 'Sending…';
+
+  try {
+    // Send email using EmailJS with the download link
+    const response = await emailjs.send("service_7dhelnb", "template_c2muzdu", {
+      to_email: email,
+      download_link: downloadLink,
+      fixture_name: `${fx.homeName} vs ${fx.awayName}`,
+      file_name: fileName
+    });
+
+    if (response.status === 200) {
+      // Record the email usage in Supabase
+      const recorded = await recordEmailUsage(email, `${fx.homeName} vs ${fx.awayName}`);
+      
+      if (recorded) {
+        status.style.color = 'green';
+        status.innerHTML = '✅ Email sent! Check your inbox for your stream page.';
+        // Clear form
+        emailInput.value = '';
+      } else {
+        status.style.color = 'orange';
+        status.innerHTML = '⚠️ Email sent, but failed to record usage. Contact support if issues.';
+      }
+    } else {
+      status.style.color = 'red';
+      status.textContent = 'Failed to send. Try again later.';
+    }
+  } catch (err) {
+    status.style.color = 'red';
+    status.textContent = 'Network error. Try again.';
+    console.error('EmailJS Error:', err);
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = originalText;
+  }
+
+  return false;
+}
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', ()=> {
@@ -504,15 +678,6 @@ document.addEventListener('DOMContentLoaded', ()=> {
   setInterval(loadLocalFixturesLanding, 60*1000);
 });
 </script>
-
-
-
-
-
-
-
-
-
 
 </body>
 </html>
