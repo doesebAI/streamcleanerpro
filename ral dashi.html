@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StreamPilot – Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --secondary: #1e293b;
+      --light: #f8fafc;
+      --muted: #64748b;
+      --border: #e5e7eb;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      margin: 0; 
+      background: var(--light); 
+      color: var(--secondary); 
+    }
+    
+    .dashboard { 
+      display: flex; 
+      flex-direction: row; 
+      min-height: 100vh; 
+    }
+    
+    .sidebar { 
+      background: var(--secondary); 
+      color: white; 
+      padding: 2rem 1.5rem; 
+      width: 240px; 
+    }
+    
+    .sidebar h1 { 
+      font-size: 1.5rem; 
+      margin-bottom: 2rem; 
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sidebar nav a { 
+      display: block; 
+      color: #cbd5e1; 
+      text-decoration: none; 
+      margin: 1rem 0; 
+      font-weight: 500; 
+      transition: color 0.2s; 
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sidebar nav a:hover { 
+      color: var(--primary); 
+    }
+    
+    .dashboard-content { 
+      flex: 1; 
+      padding: 2rem 3rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 2rem; 
+      background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0); 
+    }
+    
+    .dashboard-card { 
+      background: white; 
+      padding: 1.25rem; 
+      border-radius: 1rem; 
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
+    }
+    
+    h2 i { 
+      margin-right: 0.5rem; 
+      color: var(--primary); 
+    }
+    
+    .stream-dropdown, input, textarea, select { 
+      width: 100%; 
+      margin-top: .6rem; 
+      padding: 1rem; 
+      border: 1px solid var(--border); 
+      border-radius: 0.5rem; 
+      font-size: 1rem; 
+      box-sizing: border-box;
+    }
+    
+    button { 
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      padding: 0.9rem 1.2rem; 
+      border-radius: 0.5rem; 
+      font-size: 1rem; 
+      margin-top: .5rem; 
+      cursor: pointer; 
+      transition: background 0.2s;
+    }
+    
+    button:hover { 
+      background: var(--primary-dark); 
+    }
+    
+    button:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+    
+    .file-status { 
+      font-size: 0.9rem; 
+      color: var(--muted); 
+      margin-top: 0.5rem; 
+    }
+    
+    .toggle-row { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin: 0.75rem 0; 
+    }
+    
+    .toggle-row label { 
+      font-weight: 500; 
+    }
+    
+    .muted { 
+      color: var(--muted); 
+      font-size: 0.85rem; 
+      margin-top: 0.25rem; 
+    }
+    
+    .balance { 
+      font-size: 1.8rem; 
+      font-weight: 700; 
+      margin-bottom: 0.5rem; 
+    }
+    
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 1rem; 
+    }
+    
+    th, td { 
+      padding: 0.75rem; 
+      border-bottom: 1px solid var(--border); 
+      text-align: left; 
+      font-size: 0.95rem; 
+    }
+    
+    th { 
+      background: #f1f5f9; 
+    }
+    
+    .status-paid { 
+      color: var(--success); 
+      font-weight: 600; 
+    }
+    
+    .status-pending { 
+      color: var(--warning); 
+      font-weight: 600; 
+    }
+    
+    .status-rejected { 
+      color: var(--danger); 
+      font-weight: 600; 
+    }
+    
+    @media screen and (max-width: 900px) {
+      .dashboard { 
+        flex-direction: column; 
+      }
+      
+      .sidebar { 
+        width: 100%; 
+        display: flex; 
+        flex-wrap: wrap; 
+        justify-content: space-around; 
+      }
+      
+      .sidebar h1 { 
+        display: none; 
+      }
+      
+      .dashboard-content { 
+        padding: 1.25rem; 
+      }
+      
+      button { 
+        width: 100%; 
+      }
+    }
+    
+    .dashboard-card canvas {
+      min-height: 300px !important;
+      width: 100% !important;
+    }
+    
+    .stats-table table { 
+      width: 100%; 
+      border-collapse: collapse; 
+    }
+    
+    .stats-table th { 
+      background: var(--light); 
+      padding: 12px; 
+      text-align: left; 
+    }
+    
+    .stats-table td { 
+      padding: 12px; 
+      border-bottom: 1px solid var(--border); 
+    }
+    
+    .bar-wrapper { 
+      background: #f1f5f9; 
+      border-radius: 4px; 
+      height: 24px; 
+      position: relative; 
+    }
+    
+    .bar { 
+      position: absolute; 
+      left: 0; 
+      top: 0; 
+      height: 100%; 
+      border-radius: 4px; 
+      padding: 0 8px; 
+      line-height: 24px; 
+      color: white; 
+    }
+    
+    .bar.traffic { 
+      background: var(--primary-dark); 
+    }
+    
+    .bar.revenue { 
+      background: var(--success); 
+    }
+    
+    .card { 
+      border: 1px solid var(--border); 
+      border-radius: 0.5rem; 
+      padding: 1rem; 
+      margin: 0.5rem 0; 
+      cursor: pointer; 
+      transition: all 0.2s;
+    }
+    
+    .card:hover { 
+      background-color: #f1f5f9; 
+      border-color: var(--primary);
+    }
+    
+    .card.selected { 
+      background-color: #dbeafe; 
+      border-color: var(--primary);
+    }
+    
+    .preview iframe { 
+      width: 100%; 
+      height: 400px; 
+      border: none; 
+      border-radius: 0.5rem; 
+      margin-top: 1rem;
+    }
+    
+    /* Quick Stats Styles */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-trend {
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-trend.positive {
+      color: var(--success);
+    }
+    
+    .stat-trend.negative {
+      color: var(--danger);
+    }
+    
+    .stat-trend.neutral {
+      color: var(--muted);
+    }
+    
+    .stat-trend i {
+      margin-right: 0.25rem;
+    }
+    
+    /* Experience vs Earnings Balance */
+    .balance-indicator {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: #f8fafc;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    
+    .balance-slider {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+    
+    .balance-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    
+    .balance-bar {
+      flex: 1;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      margin: 0 1rem;
+      position: relative;
+    }
+    
+    .balance-fill {
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(to right, var(--primary), var(--success));
+      transition: width 0.3s;
+    }
+    
+    /* Success Message */
+    .success-message {
+      background: #d1fae5;
+      color: var(--success);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    
+    /* Domain Selection */
+    .domain-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .domain-card {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    
+    .domain-card:hover {
+      border-color: var(--primary);
+      background: #f1f5f9;
+    }
+    
+    .domain-card.selected {
+      border-color: var(--primary);
+      background: #dbeafe;
+    }
+    
+    /* Validation Styles */
+    .validation-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    input.error, select.error {
+      border-color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+<section class="dashboard">
+  <aside class="sidebar">
+    <h1><i class="fas fa-rocket"></i> StreamPilot</h1>
+    <nav>
+      <a href="#tool"><i class="fas fa-tv"></i> Stream Tool</a>
+      <a href="#stats"><i class="fas fa-chart-simple"></i> Quick Stats</a>
+      <a href="#withdrawals"><i class="fas fa-wallet"></i> Withdrawals</a>
+      <a href="#profile"><i class="fas fa-user-circle"></i> Profile</a>
+      <a href="#support"><i class="fas fa-comment-dots"></i> Support</a>
+      <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="dashboard-content">
+
+    <!-- Stream Tool -->
+    <div id="tool" class="dashboard-card">
+      <h2><i class="fas fa-tv"></i> Stream Tool</h2>
+
+      <!-- Step 1 -->
+      <h3>Step 1: Select Stream</h3>
+      <select id="streamSelect" class="stream-dropdown"><option>Loading…</option></select>
+      <div id="thumbList" style="margin-top:10px"></div>
+      <div id="matchPreview" class="preview" style="display:none;"></div>
+
+      <!-- Step 2 -->
+      <h3 style="margin-top:16px">Step 2: Enable Monetization</h3>
+      <div class="toggle-row">
+        <label>Enable Monetization</label>
+        <input type="checkbox" id="enableMonetization"/>
+      </div>
+
+      <div id="monetizationOptions" style="display:none; margin-top:1rem">
+        <div class="toggle-row">
+          <label>Native Banner Ads</label>
+          <input type="checkbox" id="enableNativeBanners" />
+        </div>
+        <p class="muted">CPM-based ads shown on all devices.</p>
+        
+        <div class="toggle-row">
+          <label>Popunders</label>
+          <input type="checkbox" id="enablePopunders" />
+        </div>
+        <p class="muted">Popunder ads that appear when users interact with the page.</p>
+        
+        <div class="toggle-row">
+          <label>Content Locker (CPL)</label>
+          <input type="checkbox" id="enableContentLocker" />
+        </div>
+        <p class="muted">Visitors must complete an offer to unlock the stream after 45 minutes.</p>
+        
+        <div class="toggle-row">
+          <label>Standard Banners (CPM)</label>
+          <input type="checkbox" id="enableStandardBanners" />
+        </div>
+        <p class="muted">Traditional banner ads placed throughout the page.</p>
+        
+        <div class="toggle-row">
+          <label>SmartLink Redirect (CPI)</label>
+          <input type="checkbox" id="enableSmartlink" />
+        </div>
+        <p class="muted">Redirects users to offers based on their device and location.</p>
+        
+        <!-- Experience vs Earnings Balance Indicator -->
+        <div class="balance-indicator">
+          <div class="toggle-row">
+            <label>User Experience vs Earnings Balance</label>
+          </div>
+          <div class="balance-slider">
+            <span>😐 User Experience</span>
+            <div class="balance-bar">
+              <div class="balance-fill" id="balanceFill" style="width: 50%;"></div>
+            </div>
+            <span>💰 Earnings</span>
+          </div>
+          <div class="balance-labels">
+            <span>Less Intrusive</span>
+            <span>More Intrusive</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <h3 style="margin-top:16px">Step 3: Choose Domain & Launch</h3>
+      <div class="domain-options" id="domainOptions">
+        <label for="domainSelect" style="font-weight:600;display:block;margin-bottom:8px">Choose domain</label>
+        <select id="domainSelect" class="stream-dropdown">
+          <option value="">-- Choose a domain --</option>
+          <option value="https://kattarra.netlify.app/">kattarra.netlify.app</option>
+          <option value="https://iroohh.netlify.app/">iroohh.netlify.app</option>
+          <option value="https://zuuko.netlify.app/">zuuko.netlify.app</option>
+          <option value="https://ozulastream.netlify.app/">ozulastream.netlify.app</option>
+          <option value="https://ozaistream.netlify.app/">ozaistream.netlify.app</option>
+        </select>
+      </div>
+      
+      <button id="launchBtn">🚀 Launch Stream</button>
+      <div id="launchStatus" class="file-status">Select a domain to launch your stream</div>
+      <div id="successMessage" class="success-message"></div>
+    </div>
+
+    <!-- Quick Stats Section -->
+    <section id="stats" class="dashboard-card">
+      <h2><i class="fas fa-chart-simple"></i> Quick Stats</h2>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Impressions</div>
+          <div class="stat-value" id="stat-impressions">0</div>
+          <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Real-time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Clicks</div>
+          <div class="stat-value" id="stat-clicks">0</div>
+          <div class="stat-trend neutral"><i class="fas fa-minus"></i> Real-time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">CTR</div>
+          <div class="stat-value" id="stat-ctr">0%</div>
+          <div class="stat-trend neutral"><i class="fas fa-minus"></i> Click rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">CPM</div>
+          <div class="stat-value" id="stat-cpm">$0.00</div>
+          <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Est.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Revenue</div>
+          <div class="stat-value" id="stat-revenue">$0.00</div>
+          <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Est.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Withdrawals -->
+    <section id="withdrawals" class="dashboard-card">
+      <h2><i class="fas fa-wallet"></i> Withdrawals</h2>
+      <div class="balance">$0.00</div>
+      <p class="muted">Available Balance (Minimum $30 to withdraw)</p>
+      
+      <h3>Earnings Breakdown</h3>
+      <table>
+        <tr><th>Source</th><th>Amount</th></tr>
+        <tr><td>Native Banner Ads</td><td>$0.00</td></tr>
+        <tr><td>Popunders</td><td>$0.00</td></tr>
+        <tr><td>Content Locker (CPL)</td><td>$0.00</td></tr>
+        <tr><td>Standard Banners</td><td>$0.00</td></tr>
+        <tr><td>SmartLink Redirect</td><td>$0.00</td></tr>
+      </table>
+      
+      <h3 style="margin-top:1.5rem">Request Withdrawal</h3>
+      <input type="email" id="paypalEmail" placeholder="PayPal Email Address" />
+      <div id="paypalEmailError" class="validation-error">Please enter a valid PayPal email address</div>
+      
+      <input type="number" id="withdrawalAmount" placeholder="Amount (USD)" min="30" step="0.01" />
+      <div id="withdrawalAmountError" class="validation-error">Minimum withdrawal amount is $30</div>
+      
+      <button id="requestWithdrawalBtn">Request Withdrawal</button>
+      
+      <h3 style="margin-top:1.5rem">Withdrawal History</h3>
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td colspan="4" class="muted">No withdrawals yet</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- Profile -->
+    <section id="profile" class="dashboard-card">
+      <h2><i class="fas fa-user-circle"></i> Profile</h2>
+      <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
+      <input type="email" id="updateEmail" placeholder="New email">
+      <input type="password" id="updatePassword" placeholder="New password">
+      <button id="saveProfileBtn">Update Profile</button>
+    </section>
+
+    <!-- Support -->
+    <section id="support" class="dashboard-card">
+      <h2><i class="fas fa-comment-dots"></i> Support</h2>
+      <form id="supportForm" action="https://formspree.io/f/xdkdywpq" method="POST">
+        <label>Subject:</label>
+        <input type="text" name="subject" required>
+        <label>Message:</label>
+        <textarea name="message" required></textarea>
+        <input type="hidden" name="email" id="supportEmail">
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+
+  </main>
+</section>
+
+<script>
+/* ---------- Fixtures ---------- */
+const DASH_FIXTURES = [
+  {
+    FixtureKey: "2025-09-13-brentford-vs-chelsea",
+    dateISO: "2025-09-13T19:00:00Z",
+    homeName: "Brentford",
+    homeLogo: "https://totalsportek.army/assets2/images/premier/Brentford.png",
+    awayName: "Chelsea",
+    awayLogo: "https://totalsportek.army/assets2/images/premier/Chelsea.png",
+    league: "Premier League",
+    iframeHtml: null,
+    status: "Upcoming"
+  }
+];
+
+const PLACEHOLDER_IFRAME = "https://placeholder.com/embed";
+const REVEAL_BEFORE_MS = 30 * 60 * 1000;
+let currentFixtures = [];
+
+/* ---------- Helpers ---------- */
+function parseISO(s){ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }
+function isToday(iso){ const d=parseISO(iso); if(!d) return false; const n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
+function shouldReveal(kickoffIso){ const d=parseISO(kickoffIso); if(!d) return false; return Date.now() >= (d.getTime() - REVEAL_BEFORE_MS); }
+
+/* ---------- Dashboard UI ---------- */
+async function loadLocalDashboard(){
+  currentFixtures = DASH_FIXTURES.filter(f=>isToday(f.dateISO))
+    .map(f=>({...f, kickoffMs: parseISO(f.dateISO)?.getTime()||null}))
+    .sort((a,b)=>(a.kickoffMs||0)-(b.kickoffMs||0));
+  renderDashboardUI(currentFixtures);
+}
+
+function renderDashboardUI(fixtures){
+  const sel = document.getElementById('streamSelect');
+  const wrap = document.getElementById('thumbList');
+  if(!sel || !wrap) return;
+
+  sel.innerHTML = `<option value="">-- Choose a match --</option>`;
+  wrap.innerHTML = "";
+
+  if(!fixtures.length){
+    sel.innerHTML = `<option value="">No fixtures</option>`;
+    wrap.innerHTML = '<p>No fixtures found</p>';
+    return;
+  }
+
+  fixtures.forEach((fx,i)=>{
+    const opt = document.createElement('option'); opt.value = i;
+    opt.textContent = `[${fx.league}] ${fx.homeName} vs ${fx.awayName}`;
+    sel.appendChild(opt);
+
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `
+      <div class="title">${fx.homeName} vs ${fx.awayName}</div>
+      <div style="font-size:12px">League: ${fx.league}</div>
+    `;
+    card.addEventListener('click', ()=> {
+      sel.value = i;
+      showDashboardPreview(fx);
+      document.querySelectorAll('#thumbList .card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+    wrap.appendChild(card);
+  });
+
+  showDashboardPreview(fixtures[0]);
+}
+
+function showDashboardPreview(fx){
+  const preview = document.getElementById('matchPreview');
+  if(!preview) return;
+  preview.style.display = 'block';
+  const reveal = shouldReveal(fx.dateISO) && fx.iframeHtml;
+  const embedHtml = reveal ? fx.iframeHtml : `<iframe src="${PLACEHOLDER_IFRAME}" allowfullscreen></iframe>`;
+  preview.innerHTML = `
+    <div><b>${fx.homeName} vs ${fx.awayName}</b></div>
+    <div>${fx.league} • ${new Date(fx.dateISO).toLocaleString()}</div>
+    <div>${embedHtml}</div>
+  `;
+}
+
+/* ---------- Monetization Balance Indicator ---------- */
+function updateBalanceIndicator() {
+  const monetizationOptions = document.querySelectorAll('#monetizationOptions input[type="checkbox"]');
+  const balanceFill = document.getElementById('balanceFill');
+  if(!balanceFill) return;
+
+  let checkedCount = 0;
+  monetizationOptions.forEach(option => {
+    if (option.checked) checkedCount++;
+  });
+
+  const percentage = 50 + (checkedCount * 10);
+  balanceFill.style.width = `${Math.min(percentage, 100)}%`;
+}
+
+/* ---------- Domain ad configuration (ESCAPED for file generation only) ---------- */
+const DOMAIN_AD_CONFIG = {
+  "iroohh.netlify.app": {
+    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822431.effectivegatecpm.com/1de46bc197c051b5f4df9398b4ee85a1/invoke.js"><\/script><div id="container-1de46bc197c051b5f4df9398b4ee85a1"><\/div>',
+    banner: '<script type="text/javascript">atOptions = { "key" : "d2c757877d311e4e613fba97f9b3bb29", "format" : "iframe", "height" : 300, "width" : 160, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/d2c757877d311e4e613fba97f9b3bb29/invoke.js"><\/script>',
+    popunder: '<script type="text/javascript" src="//pl27822425.effectivegatecpm.com/8e/12/8e/8e128e8b2e75db5d6a39b33b266091b5.js"><\/script>',
+    smartlink: 'https://www.effectivegatecpm.com/dssc3xj2?key=280f57318e3f07b5bca9b3baef28d291'
+  },
+  "kattarra.netlify.app": {
+    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27794318.effectivegatecpm.com/5ba93533c13689055663d6a9cda2a504/invoke.js"><\/script><div id="container-5ba93533c13689055663d6a9cda2a504"><\/div>',
+    banner: '<script type="text/javascript">atOptions = { "key" : "0b5529dff9a4452de30997c16111c336", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/0b5529dff9a4452de30997c16111c336/invoke.js"><\/script>',
+    popunder: '<script type="text/javascript" src="//pl27822433.effectivegatecpm.com/c8/9a/a4/c89aa42737c9bfb0a6ed9859e9611bc6.js"><\/script>',
+    smartlink: 'https://www.effectivegatecpm.com/k2tjn9em?key=2404bbff3fd6e68cab7b938b0cbfd9d7'
+  },
+  "ozaistream.netlify.app": {
+    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822440.effectivegatecpm.com/f855072ae607b27790822d00194154f6/invoke.js"><\/script><div id="container-f855072ae607b27790822d00194154f6"><\/div>',
+    banner: '<script type="text/javascript">atOptions = { "key" : "505e8d37fbe15f26892bf1848b8202b0", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/505e8d37fbe15f26892bf1848b8202b0/invoke.js"><\/script>',
+    popunder: '<script type="text/javascript" src="//pl27822424.effectivegatecpm.com/1e/c3/c6/1ec3c6b709fd9b3881a123c3d25e19ab.js"><\/script>',
+    smartlink: 'https://www.effectivegatecpm.com/vwddvqbrrb?key=fe4b5237bbf8dd4e4d07ecb2f9762da5'
+  },
+  "zuuko.netlify.app": {
+    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822435.effectivegatecpm.com/2df0ae8dc8da7691f5fc668b8adbeb8d/invoke.js"><\/script><div id="container-2df0ae8dc8da7691f5fc668b8adbeb8d"><\/div>',
+    banner: '<script type="text/javascript">atOptions = { "key" : "30a2b6835b15c458a0ddca0a06295f28", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/30a2b6835b15c458a0ddca0a06295f28/invoke.js"><\/script>',
+    popunder: '<script type="text/javascript" src="//pl27822429.effectivegatecpm.com/8a/f3/ad/8af3ad229d57b04f190926da3a3d645f.js"><\/script>',
+    smartlink: 'https://www.effectivegatecpm.com/kwvkpc0y?key=c1bf2c4c43b9f21ca7fd5fe5e35c2966'
+  },
+  "ozulastream.netlify.app": {
+    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27715001.effectivegatecpm.com/1a20c7fc3c9d6fc9ea2119d089b4372f/invoke.js"><\/script><div id="container-1a20c7fc3c9d6fc9ea2119d089b4372f"><\/div>',
+    banner: '<script type="text/javascript">atOptions = { "key" : "c4a2653ec2e417f6bd397492d5ddafc8", "format" : "iframe", "height" : 300, "width" : 160, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/c4a2653ec2e417f6bd397492d5ddafc8/invoke.js"><\/script>',
+    popunder: '<script type="text/javascript" src="//pl27746943.effectivegatecpm.com/5c/d3/27/5cd32769a9f630ba7ed1e065baf60c51.js"><\/script>',
+    smartlink: 'https://www.effectivegatecpm.com/bc4c22pwq?key=f83f8ef1623b22bf1f49f31c6d4fafaa'
+  }
+};
+
+/* ---------- Helper: hostname extractor ---------- */
+function hostnameFromUrl(url) {
+  try {
+    return (new URL(url)).hostname;
+  } catch (e) {
+    return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
+}
+
+/* ---------- Domain Selection ---------- */
+function initializeDomainSelection() {
+  const domainSelect = document.getElementById('domainSelect');
+  const launchStatus = document.getElementById('launchStatus');
+  if (!domainSelect) return;
+
+  const assigned = localStorage.getItem('assignedDomain');
+  if (assigned) {
+    domainSelect.value = assigned;
+    domainSelect.disabled = true;
+    launchStatus.textContent = `Assigned domain: ${assigned} (locked)`;
+    return;
+  }
+
+  domainSelect.addEventListener('change', () => {
+    const val = domainSelect.value || '';
+    launchStatus.textContent = val ? `Selected: ${val}` : 'Select a domain to launch your stream';
+  });
+}
+
+/* ---------- Generate stream HTML for a given domain + fixture ---------- */
+function generateStreamHtml(selectedDomain, fx, embedSrc, monetizationSettings) {
+  const host = hostnameFromUrl(selectedDomain);
+  const cfg = DOMAIN_AD_CONFIG[host] || {};
+
+  // Build HTML with concatenation to avoid template literal issues
+  let html = '<!DOCTYPE html><html lang="en"><head>';
+  html += '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+  html += '<title>Live Stream | ' + host + '</title>';
+  html += '<style>body{margin:0;background:#0f172a;color:white;font-family:sans-serif} .wrapper{display:flex;flex-direction:column;min-height:100vh} header,footer{text-align:center;padding:10px}.content{flex:1;display:flex;justify-content:center;align-items:center;padding:10px}.stream-container{flex:1;max-width:900px;margin:0 10px}.sidebar{width:180px}.iframe{width:100%;height:500px;border:none}.ad-box{margin:10px auto;text-align:center}</style>';
+  html += '</head><body><div class="wrapper">';
+
+  // Header banner (banner snippet)
+  html += '<header><div class="ad-box">' + (cfg.banner || '') + '</div></header>';
+
+  // Main content with sidebars
+  html += '<div class="content">';
+  // left sidebar
+  html += '<aside class="sidebar"><div class="ad-box">' + (cfg.banner || '') + '</div></aside>';
+
+  // stream iframe
+  html += '<main class="stream-container">';
+  html += '<iframe class="iframe" src="' + (embedSrc || PLACEHOLDER_IFRAME) + '" allowfullscreen></iframe>';
+  html += '</main>';
+
+  // right sidebar
+  html += '<aside class="sidebar"><div class="ad-box">' + (cfg.banner || '') + '</div></aside>';
+  html += '</div>'; // end content
+
+  // Footer native / nativeAsync
+  html += '<footer><div class="ad-box">' + (cfg.nativeAsync || '') + '</div></footer>';
+
+  // Popunder script (insert at end)
+  html += (cfg.popunder || '');
+
+  // Smartlink/content locker - if monetization enabled and content locker requested, insert as modal
+  if (monetizationSettings && monetizationSettings.contentLocker && cfg.smartlink) {
+    html += '<script>/* Simple locker: show link after 45 minutes */function showLocker(){var d=document.createElement("div");d.style= "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;color:white;z-index:9999";d.innerHTML = \'<h2>🔒 Complete Offer to Continue</h2><div style="margin-top:12px;"><a href="' + cfg.smartlink + '" target="_blank">Open Offer</a></div>\';document.body.appendChild(d);} setTimeout(showLocker, 45*60*1000);<\/script>';
+  } else if (cfg.smartlink) {
+    // still include smartlink too (non-locker) if present
+    html += '<!-- smartlink available: ' + cfg.smartlink + ' -->';
+  }
+
+  html += '</div></body></html>';
+  return html;
+}
+
+/* ---------- Launch Button ---------- */
+function initializeLaunchButton() {
+  const launchBtn = document.getElementById('launchBtn');
+  const successMessage = document.getElementById('successMessage');
+  if (!launchBtn) return;
+
+  launchBtn.addEventListener('click', () => {
+    const domainSelect = document.getElementById('domainSelect');
+    const selectedDomain = domainSelect?.value || '';
+    const streamSelect = document.getElementById('streamSelect');
+    const idx = parseInt(streamSelect?.value, 10);
+
+    if (!selectedDomain) {
+      alert('Please select a domain first.');
+      return;
+    }
+
+    if (isNaN(idx)) {
+      alert('Please select a stream first.');
+      return;
+    }
+
+    const fx = currentFixtures[idx];
+    if (!fx) {
+      alert('Selected stream not found.');
+      return;
+    }
+
+    // Build stream path & full URL
+    const streamPath = fx.homeName.replace(/\s+/g, '-').toLowerCase() + '-vs-' + fx.awayName.replace(/\s+/g, '-').toLowerCase();
+    const publishedFile = streamPath + '.html';
+    const fullUrl = selectedDomain.replace(/\/$/, '') + '/' + publishedFile;
+
+    // Build monetization settings
+    const monetization = getMonetizationSettings();
+
+    // Generate HTML page with ad snippets for selected domain
+    const embedSrc = (shouldReveal(fx.dateISO) && fx.iframeHtml) ? fx.iframeHtml : PLACEHOLDER_IFRAME;
+    const pageHtml = generateStreamHtml(selectedDomain, fx, embedSrc, monetization);
+
+    // Offer download of generated page (THIS IS SAFE - ads only run when file is opened)
+    const blob = new Blob([pageHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = publishedFile;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    // If user has not been assigned a domain yet, lock assignment now
+    if (!localStorage.getItem('assignedDomain')) {
+      localStorage.setItem('assignedDomain', selectedDomain);
+      if (domainSelect) domainSelect.disabled = true;
+      document.getElementById('launchStatus').textContent = `Assigned domain: ${selectedDomain} (locked)`;
+    }
+
+    // Show success + copyable URL
+    successMessage.innerHTML = '<strong>Stream Published Successfully!</strong><br>Your stream page has been downloaded. Upload it to your domain to publish.<br><button id="copyStreamUrl" style="margin-top:8px;padding:8px 10px;border-radius:6px;border:none;background:#2563eb;color:#fff;cursor:pointer">Copy Stream URL</button>';
+    successMessage.style.display = 'block';
+    document.getElementById('launchStatus').textContent = '✅ Stream generated (downloaded). Upload to chosen domain to publish.';
+
+    // Wire copy button
+    const copyBtn = document.getElementById('copyStreamUrl');
+    copyBtn?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(fullUrl).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => (copyBtn.textContent = 'Copy Stream URL'), 2000);
+      }).catch(() => alert('Copy failed — please copy manually: ' + fullUrl));
+    });
+
+    // Persist last launch metadata
+    const streamSettings = {
+      domain: selectedDomain,
+      stream: fx.FixtureKey,
+      monetization,
+      generatedAt: new Date().toISOString(),
+      publishedPath: publishedFile
+    };
+    localStorage.setItem('lastStreamLaunch', JSON.stringify(streamSettings));
+  });
+}
+
+/* ---------- Monetization getter ---------- */
+function getMonetizationSettings() {
+  return {
+    enabled: !!document.getElementById('enableMonetization')?.checked,
+    nativeBanners: !!document.getElementById('enableNativeBanners')?.checked,
+    popunders: !!document.getElementById('enablePopunders')?.checked,
+    contentLocker: !!document.getElementById('enableContentLocker')?.checked,
+    standardBanners: !!document.getElementById('enableStandardBanners')?.checked,
+    smartlink: !!document.getElementById('enableSmartlink')?.checked
+  };
+}
+
+/* ---------- Withdrawal Validation ---------- */
+function initializeWithdrawalValidation() {
+  const paypalEmail = document.getElementById('paypalEmail');
+  const withdrawalAmount = document.getElementById('withdrawalAmount');
+  const paypalEmailError = document.getElementById('paypalEmailError');
+  const withdrawalAmountError = document.getElementById('withdrawalAmountError');
+  const requestBtn = document.getElementById('requestWithdrawalBtn');
+  if (!paypalEmail || !withdrawalAmount || !requestBtn) return;
+
+  function validateForm() {
+    let isValid = true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!paypalEmail.value || !emailRegex.test(paypalEmail.value)) {
+      paypalEmail.classList.add('error');
+      paypalEmailError.style.display = 'block';
+      isValid = false;
+    } else {
+      paypalEmail.classList.remove('error');
+      paypalEmailError.style.display = 'none';
+    }
+
+    if (!withdrawalAmount.value || parseFloat(withdrawalAmount.value) < 30) {
+      withdrawalAmount.classList.add('error');
+      withdrawalAmountError.style.display = 'block';
+      isValid = false;
+    } else {
+      withdrawalAmount.classList.remove('error');
+      withdrawalAmountError.style.display = 'none';
+    }
+
+    return isValid;
+  }
+
+  paypalEmail.addEventListener('input', validateForm);
+  withdrawalAmount.addEventListener('input', validateForm);
+
+  requestBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      alert('Withdrawal request submitted successfully! We will process it within 3-5 business days.');
+      paypalEmail.value = '';
+      withdrawalAmount.value = '';
+    }
+  });
+}
+
+/* ---------- Quick Stats Functionality ---------- */
+function updateQuickStats() {
+  const impressions = Math.floor(100000 + Math.random() * 5000);
+  const clicks = Math.floor(impressions * (0.005 + Math.random() * 0.02));
+  const ctr = (clicks / impressions * 100);
+  const revenue = (5 + Math.random() * 50);
+  const cpm = (revenue / impressions * 1000);
+
+  const elImpr = document.getElementById('stat-impressions');
+  const elClicks = document.getElementById('stat-clicks');
+  const elCtr = document.getElementById('stat-ctr');
+  const elCpm = document.getElementById('stat-cpm');
+  const elRevenue = document.getElementById('stat-revenue');
+
+  if (elImpr) elImpr.textContent = impressions.toLocaleString();
+  if (elClicks) elClicks.textContent = clicks.toLocaleString();
+  if (elCtr) elCtr.textContent = `${ctr.toFixed(2)}%`;
+  if (elCpm) elCpm.textContent = `$${cpm.toFixed(2)}`;
+  if (elRevenue) elRevenue.textContent = `$${revenue.toFixed(2)}`;
+}
+
+/* ---------- UI Initialization ---------- */
+const enableMonetization = document.getElementById("enableMonetization");
+const monetizationOptionsEl = document.getElementById("monetizationOptions");
+
+enableMonetization?.addEventListener("change", () => {
+  if (monetizationOptionsEl) monetizationOptionsEl.style.display = enableMonetization.checked ? "block" : "none";
+  updateBalanceIndicator();
+});
+
+document.querySelectorAll('#monetizationOptions input[type="checkbox"]').forEach(checkbox => {
+  checkbox.addEventListener('change', updateBalanceIndicator);
+});
+
+/* ---------- Initialize Dashboard ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadLocalDashboard();
+  setInterval(loadLocalDashboard, 60*1000);
+
+  initializeDomainSelection();
+  initializeLaunchButton();
+  initializeWithdrawalValidation();
+
+  updateQuickStats();
+  setInterval(updateQuickStats, 10000);
+
+  const lastLaunch = localStorage.getItem('lastStreamLaunch');
+  if (lastLaunch) {
+    try { console.log('Last stream launch:', JSON.parse(lastLaunch)); } catch(e){ /* ignore */ }
+  }
+});
+</script>
+</body>
+</html>
