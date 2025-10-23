@@ -6,11 +6,11 @@ const NETLIFY_AUTH_TOKEN = "nfp_HLb6H97TqreyaEhH68fi9hoGYm1ttm246998";
 
 // 🔹 Map of domains to Netlify site IDs
 const SITE_MAP = {
-  "kattarra.netlify.app": "YOUR_SITE_ID_1",
-  "iroohh.netlify.app": "YOUR_SITE_ID_2",
-  "zuuko.netlify.app": "YOUR_SITE_ID_3",
-  "ozulastream.netlify.app": "YOUR_SITE_ID_4",
-  "ozaistream.netlify.app": "YOUR_SITE_ID_5"
+  "kattarra.netlify.app": "661af476-b1e1-431f-a6a2-0fc174a05ae2",
+  "iroohh.netlify.app": "1c5da329-b963-4bcc-bb6b-4c74b022b347",
+  "zuuko.netlify.app": "38c95e99-071f-433b-b27f-4c7e42f7cce0",
+  "ozulastream.netlify.app": "60a96737-a9d0-49ea-bb2a-d7ffedf0931a",
+  "ozaistream.netlify.app": "39022f71-8675-46b4-a468-a3d1345910ea"
 };
 
 // 🔹 Supabase credentials
