@@ -706,129 +706,34 @@ function showDashboardPreview(fx){
   `;
 }
 
-/* ---------- Monetization Balance Indicator ---------- */
-function updateBalanceIndicator() {
-  const monetizationOptions = document.querySelectorAll('#monetizationOptions input[type="checkbox"]');
-  const balanceFill = document.getElementById('balanceFill');
-  if(!balanceFill) return;
-
-  let checkedCount = 0;
-  monetizationOptions.forEach(option => {
-    if (option.checked) checkedCount++;
-  });
-
-  const percentage = 50 + (checkedCount * 10);
-  balanceFill.style.width = `${Math.min(percentage, 100)}%`;
-}
-
-/* ---------- Domain ad configuration (ESCAPED for file generation only) ---------- */
-const DOMAIN_AD_CONFIG = {
-  "iroohh.netlify.app": {
-    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822431.effectivegatecpm.com/1de46bc197c051b5f4df9398b4ee85a1/invoke.js"><\/script><div id="container-1de46bc197c051b5f4df9398b4ee85a1"><\/div>',
-    banner: '<script type="text/javascript">atOptions = { "key" : "d2c757877d311e4e613fba97f9b3bb29", "format" : "iframe", "height" : 300, "width" : 160, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/d2c757877d311e4e613fba97f9b3bb29/invoke.js"><\/script>',
-    popunder: '<script type="text/javascript" src="//pl27822425.effectivegatecpm.com/8e/12/8e/8e128e8b2e75db5d6a39b33b266091b5.js"><\/script>',
-    smartlink: 'https://www.effectivegatecpm.com/dssc3xj2?key=280f57318e3f07b5bca9b3baef28d291'
-  },
-  "kattarra.netlify.app": {
-    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27794318.effectivegatecpm.com/5ba93533c13689055663d6a9cda2a504/invoke.js"><\/script><div id="container-5ba93533c13689055663d6a9cda2a504"><\/div>',
-    banner: '<script type="text/javascript">atOptions = { "key" : "0b5529dff9a4452de30997c16111c336", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/0b5529dff9a4452de30997c16111c336/invoke.js"><\/script>',
-    popunder: '<script type="text/javascript" src="//pl27822433.effectivegatecpm.com/c8/9a/a4/c89aa42737c9bfb0a6ed9859e9611bc6.js"><\/script>',
-    smartlink: 'https://www.effectivegatecpm.com/k2tjn9em?key=2404bbff3fd6e68cab7b938b0cbfd9d7'
-  },
-  "ozaistream.netlify.app": {
-    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822440.effectivegatecpm.com/f855072ae607b27790822d00194154f6/invoke.js"><\/script><div id="container-f855072ae607b27790822d00194154f6"><\/div>',
-    banner: '<script type="text/javascript">atOptions = { "key" : "505e8d37fbe15f26892bf1848b8202b0", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/505e8d37fbe15f26892bf1848b8202b0/invoke.js"><\/script>',
-    popunder: '<script type="text/javascript" src="//pl27822424.effectivegatecpm.com/1e/c3/c6/1ec3c6b709fd9b3881a123c3d25e19ab.js"><\/script>',
-    smartlink: 'https://www.effectivegatecpm.com/vwddvqbrrb?key=fe4b5237bbf8dd4e4d07ecb2f9762da5'
-  },
-  "zuuko.netlify.app": {
-    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27822435.effectivegatecpm.com/2df0ae8dc8da7691f5fc668b8adbeb8d/invoke.js"><\/script><div id="container-2df0ae8dc8da7691f5fc668b8adbeb8d"><\/div>',
-    banner: '<script type="text/javascript">atOptions = { "key" : "30a2b6835b15c458a0ddca0a06295f28", "format" : "iframe", "height" : 90, "width" : 728, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/30a2b6835b15c458a0ddca0a06295f28/invoke.js"><\/script>',
-    popunder: '<script type="text/javascript" src="//pl27822429.effectivegatecpm.com/8a/f3/ad/8af3ad229d57b04f190926da3a3d645f.js"><\/script>',
-    smartlink: 'https://www.effectivegatecpm.com/kwvkpc0y?key=c1bf2c4c43b9f21ca7fd5fe5e35c2966'
-  },
-  "ozulastream.netlify.app": {
-    nativeAsync: '<script async="async" data-cfasync="false" src="//pl27715001.effectivegatecpm.com/1a20c7fc3c9d6fc9ea2119d089b4372f/invoke.js"><\/script><div id="container-1a20c7fc3c9d6fc9ea2119d089b4372f"><\/div>',
-    banner: '<script type="text/javascript">atOptions = { "key" : "c4a2653ec2e417f6bd397492d5ddafc8", "format" : "iframe", "height" : 300, "width" : 160, "params" : {} }; <\/script><script type="text/javascript" src="//www.highperformanceformat.com/c4a2653ec2e417f6bd397492d5ddafc8/invoke.js"><\/script>',
-    popunder: '<script type="text/javascript" src="//pl27746943.effectivegatecpm.com/5c/d3/27/5cd32769a9f630ba7ed1e065baf60c51.js"><\/script>',
-    smartlink: 'https://www.effectivegatecpm.com/bc4c22pwq?key=f83f8ef1623b22bf1f49f31c6d4fafaa'
-  }
-};
-
-/* ---------- Helper: hostname extractor ---------- */
-function hostnameFromUrl(url) {
+/* ---------- Netlify deploy integration ---------- */
+async function deployToNetlify(selectedDomain, filename, htmlContent, userId, fixtureKey) {
   try {
-    return (new URL(url)).hostname;
-  } catch (e) {
-    return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const response = await fetch("/.netlify/functions/deploy-stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain: selectedDomain,
+        filename,
+        htmlContent,
+        userId,
+        fixtureKey
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      return data.url;
+    } else {
+      console.error("Deploy failed:", data);
+      alert("Deployment failed. Please try again later.");
+      return null;
+    }
+  } catch (err) {
+    console.error("Error during Netlify deploy:", err);
+    alert("Error deploying stream page.");
+    return null;
   }
-}
-
-/* ---------- Domain Selection ---------- */
-function initializeDomainSelection() {
-  const domainSelect = document.getElementById('domainSelect');
-  const launchStatus = document.getElementById('launchStatus');
-  if (!domainSelect) return;
-
-  const assigned = localStorage.getItem('assignedDomain');
-  if (assigned) {
-    domainSelect.value = assigned;
-    domainSelect.disabled = true;
-    launchStatus.textContent = `Assigned domain: ${assigned} (locked)`;
-    return;
-  }
-
-  domainSelect.addEventListener('change', () => {
-    const val = domainSelect.value || '';
-    launchStatus.textContent = val ? `Selected: ${val}` : 'Select a domain to launch your stream';
-  });
-}
-
-/* ---------- Generate stream HTML for a given domain + fixture ---------- */
-function generateStreamHtml(selectedDomain, fx, embedSrc, monetizationSettings) {
-  const host = hostnameFromUrl(selectedDomain);
-  const cfg = DOMAIN_AD_CONFIG[host] || {};
-
-  // Build HTML with concatenation to avoid template literal issues
-  let html = '<!DOCTYPE html><html lang="en"><head>';
-  html += '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
-  html += '<title>Live Stream | ' + host + '</title>';
-  html += '<style>body{margin:0;background:#0f172a;color:white;font-family:sans-serif} .wrapper{display:flex;flex-direction:column;min-height:100vh} header,footer{text-align:center;padding:10px}.content{flex:1;display:flex;justify-content:center;align-items:center;padding:10px}.stream-container{flex:1;max-width:900px;margin:0 10px}.sidebar{width:180px}.iframe{width:100%;height:500px;border:none}.ad-box{margin:10px auto;text-align:center}</style>';
-  html += '</head><body><div class="wrapper">';
-
-  // Header banner (banner snippet)
-  html += '<header><div class="ad-box">' + (cfg.banner || '') + '</div></header>';
-
-  // Main content with sidebars
-  html += '<div class="content">';
-  // left sidebar
-  html += '<aside class="sidebar"><div class="ad-box">' + (cfg.banner || '') + '</div></aside>';
-
-  // stream iframe
-  html += '<main class="stream-container">';
-  html += '<iframe class="iframe" src="' + (embedSrc || PLACEHOLDER_IFRAME) + '" allowfullscreen></iframe>';
-  html += '</main>';
-
-  // right sidebar
-  html += '<aside class="sidebar"><div class="ad-box">' + (cfg.banner || '') + '</div></aside>';
-  html += '</div>'; // end content
-
-  // Footer native / nativeAsync
-  html += '<footer><div class="ad-box">' + (cfg.nativeAsync || '') + '</div></footer>';
-
-  // Popunder script (insert at end)
-  html += (cfg.popunder || '');
-
-  // Smartlink/content locker - if monetization enabled and content locker requested, insert as modal
-  if (monetizationSettings && monetizationSettings.contentLocker && cfg.smartlink) {
-    html += '<script>/* Simple locker: show link after 45 minutes */function showLocker(){var d=document.createElement("div");d.style= "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;color:white;z-index:9999";d.innerHTML = \'<h2>🔒 Complete Offer to Continue</h2><div style="margin-top:12px;"><a href="' + cfg.smartlink + '" target="_blank">Open Offer</a></div>\';document.body.appendChild(d);} setTimeout(showLocker, 45*60*1000);<\/script>';
-  } else if (cfg.smartlink) {
-    // still include smartlink too (non-locker) if present
-    html += '<!-- smartlink available: ' + cfg.smartlink + ' -->';
-  }
-
-  html += '</div></body></html>';
-  return html;
 }
 
 /* ---------- Launch Button ---------- */
@@ -837,7 +742,7 @@ function initializeLaunchButton() {
   const successMessage = document.getElementById('successMessage');
   if (!launchBtn) return;
 
-  launchBtn.addEventListener('click', () => {
+  launchBtn.addEventListener('click', async () => {
     const domainSelect = document.getElementById('domainSelect');
     const selectedDomain = domainSelect?.value || '';
     const streamSelect = document.getElementById('streamSelect');
@@ -859,51 +764,40 @@ function initializeLaunchButton() {
       return;
     }
 
-    // Build stream path & full URL
+    const userId = localStorage.getItem("userId") || "guest";
     const streamPath = fx.homeName.replace(/\s+/g, '-').toLowerCase() + '-vs-' + fx.awayName.replace(/\s+/g, '-').toLowerCase();
     const publishedFile = streamPath + '.html';
-    const fullUrl = selectedDomain.replace(/\/$/, '') + '/' + publishedFile;
 
-    // Build monetization settings
     const monetization = getMonetizationSettings();
-
-    // Generate HTML page with ad snippets for selected domain
     const embedSrc = (shouldReveal(fx.dateISO) && fx.iframeHtml) ? fx.iframeHtml : PLACEHOLDER_IFRAME;
     const pageHtml = generateStreamHtml(selectedDomain, fx, embedSrc, monetization);
 
-    // Offer download of generated page (THIS IS SAFE - ads only run when file is opened)
-    const blob = new Blob([pageHtml], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = publishedFile;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const deployedUrl = await deployToNetlify(selectedDomain, publishedFile, pageHtml, userId, fx.FixtureKey);
+    if (!deployedUrl) return;
 
-    // If user has not been assigned a domain yet, lock assignment now
+    // Lock domain assignment
     if (!localStorage.getItem('assignedDomain')) {
       localStorage.setItem('assignedDomain', selectedDomain);
       if (domainSelect) domainSelect.disabled = true;
       document.getElementById('launchStatus').textContent = `Assigned domain: ${selectedDomain} (locked)`;
     }
 
-    // Show success + copyable URL
-    successMessage.innerHTML = '<strong>Stream Published Successfully!</strong><br>Your stream page has been downloaded. Upload it to your domain to publish.<br><button id="copyStreamUrl" style="margin-top:8px;padding:8px 10px;border-radius:6px;border:none;background:#2563eb;color:#fff;cursor:pointer">Copy Stream URL</button>';
+    successMessage.innerHTML = `
+      <strong>✅ Stream Launched Successfully!</strong><br>
+      Your stream is live: <a href="${deployedUrl}" target="_blank">${deployedUrl}</a><br>
+      Share this link to start earning!
+      <br><button id="copyStreamUrl" style="margin-top:8px;padding:8px 10px;border-radius:6px;border:none;background:#2563eb;color:#fff;cursor:pointer">Copy Stream URL</button>
+    `;
     successMessage.style.display = 'block';
-    document.getElementById('launchStatus').textContent = '✅ Stream generated (downloaded). Upload to chosen domain to publish.';
 
-    // Wire copy button
     const copyBtn = document.getElementById('copyStreamUrl');
     copyBtn?.addEventListener('click', () => {
-      navigator.clipboard?.writeText(fullUrl).then(() => {
+      navigator.clipboard?.writeText(deployedUrl).then(() => {
         copyBtn.textContent = 'Copied!';
         setTimeout(() => (copyBtn.textContent = 'Copy Stream URL'), 2000);
-      }).catch(() => alert('Copy failed — please copy manually: ' + fullUrl));
+      });
     });
 
-    // Persist last launch metadata
     const streamSettings = {
       domain: selectedDomain,
       stream: fx.FixtureKey,
@@ -927,103 +821,12 @@ function getMonetizationSettings() {
   };
 }
 
-/* ---------- Withdrawal Validation ---------- */
-function initializeWithdrawalValidation() {
-  const paypalEmail = document.getElementById('paypalEmail');
-  const withdrawalAmount = document.getElementById('withdrawalAmount');
-  const paypalEmailError = document.getElementById('paypalEmailError');
-  const withdrawalAmountError = document.getElementById('withdrawalAmountError');
-  const requestBtn = document.getElementById('requestWithdrawalBtn');
-  if (!paypalEmail || !withdrawalAmount || !requestBtn) return;
-
-  function validateForm() {
-    let isValid = true;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!paypalEmail.value || !emailRegex.test(paypalEmail.value)) {
-      paypalEmail.classList.add('error');
-      paypalEmailError.style.display = 'block';
-      isValid = false;
-    } else {
-      paypalEmail.classList.remove('error');
-      paypalEmailError.style.display = 'none';
-    }
-
-    if (!withdrawalAmount.value || parseFloat(withdrawalAmount.value) < 30) {
-      withdrawalAmount.classList.add('error');
-      withdrawalAmountError.style.display = 'block';
-      isValid = false;
-    } else {
-      withdrawalAmount.classList.remove('error');
-      withdrawalAmountError.style.display = 'none';
-    }
-
-    return isValid;
-  }
-
-  paypalEmail.addEventListener('input', validateForm);
-  withdrawalAmount.addEventListener('input', validateForm);
-
-  requestBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      alert('Withdrawal request submitted successfully! We will process it within 3-5 business days.');
-      paypalEmail.value = '';
-      withdrawalAmount.value = '';
-    }
-  });
-}
-
-/* ---------- Quick Stats Functionality ---------- */
-function updateQuickStats() {
-  const impressions = Math.floor(100000 + Math.random() * 5000);
-  const clicks = Math.floor(impressions * (0.005 + Math.random() * 0.02));
-  const ctr = (clicks / impressions * 100);
-  const revenue = (5 + Math.random() * 50);
-  const cpm = (revenue / impressions * 1000);
-
-  const elImpr = document.getElementById('stat-impressions');
-  const elClicks = document.getElementById('stat-clicks');
-  const elCtr = document.getElementById('stat-ctr');
-  const elCpm = document.getElementById('stat-cpm');
-  const elRevenue = document.getElementById('stat-revenue');
-
-  if (elImpr) elImpr.textContent = impressions.toLocaleString();
-  if (elClicks) elClicks.textContent = clicks.toLocaleString();
-  if (elCtr) elCtr.textContent = `${ctr.toFixed(2)}%`;
-  if (elCpm) elCpm.textContent = `$${cpm.toFixed(2)}`;
-  if (elRevenue) elRevenue.textContent = `$${revenue.toFixed(2)}`;
-}
-
-/* ---------- UI Initialization ---------- */
-const enableMonetization = document.getElementById("enableMonetization");
-const monetizationOptionsEl = document.getElementById("monetizationOptions");
-
-enableMonetization?.addEventListener("change", () => {
-  if (monetizationOptionsEl) monetizationOptionsEl.style.display = enableMonetization.checked ? "block" : "none";
-  updateBalanceIndicator();
-});
-
-document.querySelectorAll('#monetizationOptions input[type="checkbox"]').forEach(checkbox => {
-  checkbox.addEventListener('change', updateBalanceIndicator);
-});
-
-/* ---------- Initialize Dashboard ---------- */
+/* ---------- Initialization ---------- */
 document.addEventListener('DOMContentLoaded', async () => {
   await loadLocalDashboard();
-  setInterval(loadLocalDashboard, 60*1000);
-
-  initializeDomainSelection();
   initializeLaunchButton();
-  initializeWithdrawalValidation();
-
-  updateQuickStats();
-  setInterval(updateQuickStats, 10000);
-
-  const lastLaunch = localStorage.getItem('lastStreamLaunch');
-  if (lastLaunch) {
-    try { console.log('Last stream launch:', JSON.parse(lastLaunch)); } catch(e){ /* ignore */ }
-  }
 });
 </script>
+
 </body>
 </html>
