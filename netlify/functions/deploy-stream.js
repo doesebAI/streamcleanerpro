@@ -1,85 +1,83 @@
-/**
- * Deploy Stream – uploads generated HTML to the user's assigned Netlify domain.
- * Requires environment variables:
- *   NETLIFY_TOKEN   -> your personal access token
- *   SUPABASE_URL    -> e.g. https://xyz.supabase.co
- *   SUPABASE_KEY    -> service role key (never public)
- */
-
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 
-const netlifyToken = process.env.NETLIFY_TOKEN;
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const NETLIFY_API = "https://api.netlify.com/api/v1";
+const NETLIFY_AUTH_TOKEN = "nfp_HLb6H97TqreyaEhH68fi9hoGYm1ttm246998";
 
-export default async function handler(req, res) {
+// 🔹 Map of domains to Netlify site IDs
+const SITE_MAP = {
+  "kattarra.netlify.app": "YOUR_SITE_ID_1",
+  "iroohh.netlify.app": "YOUR_SITE_ID_2",
+  "zuuko.netlify.app": "YOUR_SITE_ID_3",
+  "ozulastream.netlify.app": "YOUR_SITE_ID_4",
+  "ozaistream.netlify.app": "YOUR_SITE_ID_5"
+};
+
+// 🔹 Supabase credentials
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_KEY = "YOUR_SUPABASE_SERVICE_ROLE_KEY"; // secure in Netlify env var
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+export const handler = async (event) => {
   try {
-    const { userId, domain, html, streamKey } = JSON.parse(req.body || "{}");
-    if (!userId || !domain || !html) {
-      return res.status(400).json({ error: "Missing required fields." });
+    if (event.httpMethod !== "POST") {
+      return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
-    // --- Step 1. Check if domain is already assigned ---
-    const { data: existing, error: domainError } = await supabase
-      .from("domains")
-      .select("*")
-      .eq("domain", domain)
-      .single();
-
-    if (domainError && domainError.code !== "PGRST116") throw domainError;
-
-    if (existing && existing.assigned_to && existing.assigned_to !== userId) {
-      return res.status(403).json({ error: "Domain already assigned to another user." });
+    const { domain, filename, htmlContent, userId, fixtureKey } = JSON.parse(event.body || "{}");
+    if (!domain || !filename || !htmlContent) {
+      return { statusCode: 400, body: JSON.stringify({ error: "Missing required parameters" }) };
     }
 
-    // --- Step 2. Assign domain to this user if not already ---
-    if (!existing) {
-      await supabase.from("domains").insert([{ domain, assigned_to: userId, created_at: new Date().toISOString() }]);
-    } else if (!existing.assigned_to) {
-      await supabase
-        .from("domains")
-        .update({ assigned_to: userId })
-        .eq("domain", domain);
+    const siteId = SITE_MAP[domain];
+    if (!siteId) {
+      return { statusCode: 400, body: JSON.stringify({ error: "Unknown domain" }) };
     }
 
-    // --- Step 3. Upload file to Netlify using the API ---
-    const siteName = domain.replace(/^https?:\/\//, "").replace(/\.netlify\.app\/?$/, "");
-    const fileName = `${streamKey || "stream"}-${Date.now()}.html`;
-
-    const uploadResp = await fetch(`https://api.netlify.com/api/v1/sites/${siteName}/files/${fileName}`, {
+    // 🔹 Upload file to Netlify site
+    const uploadRes = await fetch(`${NETLIFY_API}/sites/${siteId}/files/${filename}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${netlifyToken}`,
-        "Content-Type": "text/html",
+        "Authorization": `Bearer ${NETLIFY_AUTH_TOKEN}`,
+        "Content-Type": "text/html"
       },
-      body: html,
+      body: htmlContent
     });
 
-    if (!uploadResp.ok) {
-      const msg = await uploadResp.text();
-      throw new Error(`Netlify upload failed: ${msg}`);
+    if (!uploadRes.ok) {
+      const errorText = await uploadRes.text();
+      console.error("Netlify upload error:", errorText);
+      return { statusCode: uploadRes.status, body: JSON.stringify({ error: "Failed to upload file" }) };
     }
 
-    const fullUrl = `${domain.replace(/\/$/, "")}/${fileName}`;
+    const liveUrl = `https://${domain.replace(/\/$/, "")}/${filename}`;
 
-    // --- Step 4. Record deployment in Supabase ---
+    // 🔹 Log deployment into Supabase
     await supabase.from("deployments").insert([
       {
-        user_id: userId,
+        user_id: userId || "guest",
         domain,
-        stream_key: streamKey,
-        url: fullUrl,
-        created_at: new Date().toISOString(),
-      },
+        fixture_key: fixtureKey || null,
+        filename,
+        live_url: liveUrl,
+        deployed_at: new Date().toISOString()
+      }
     ]);
 
-    return res.status(200).json({
-      success: true,
-      message: "Stream deployed successfully",
-      url: fullUrl,
-    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        url: liveUrl
+      })
+    };
+
   } catch (err) {
-    console.error("Deploy error:", err);
-    return res.status(500).json({ error: err.message || "Internal Server Error" });
+    console.error("Error in deploy-stream:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Server error", details: err.message })
+    };
   }
-}
+};
