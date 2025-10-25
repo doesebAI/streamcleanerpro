@@ -1,44 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login - Stream Cleaner Pro</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <title>Login | StreamPilot</title>
   <style>
-    body {font-family: Arial, sans-serif; background:#f9fafb; display:flex; justify-content:center; align-items:center; height:100vh;}
-    .auth-box {background:#fff; padding:2rem; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.08); width:320px; text-align:center;}
-    .auth-box input {width:100%; padding:0.8rem; margin:0.5rem 0; border:1px solid #d1d5db; border-radius:6px;}
-    .auth-box button {width:100%; padding:0.8rem; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;}
-    .auth-box button:hover {background:#1d4ed8;}
-    a {display:block; margin-top:1rem; font-size:0.9rem; color:#2563eb;}
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: white;
+    }
+    .card {
+      background: #fff;
+      color: #1e293b;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    p { margin-top: 1rem; font-size: 0.9rem; }
+    a { color: #3b82f6; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="auth-box">
+  <div class="card">
     <h2>Login</h2>
-    <input type="email" id="loginEmail" placeholder="Email" />
-    <input type="password" id="loginPassword" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <a href="register.html">Don't have an account? Register</a>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="loginBtn">Login</button>
+    <p>Don’t have an account? <a href="register.html">Register</a></p>
+    <p id="message"></p>
   </div>
 
   <script>
-    const supabaseUrl = "https://rfuilglpyamrjbtkacqw.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const loginBtn = document.getElementById('loginBtn');
+    const msg = document.getElementById('message');
 
-    async function login() {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert(error.message);
-      } else {
-        localStorage.setItem("supabase_session", JSON.stringify(data.session));
-        window.location.href = "dashboard.html";
+      if (!email || !password) {
+        msg.textContent = 'Please fill in both fields.';
+        msg.style.color = 'red';
+        return;
       }
-    }
+
+      try {
+        const res = await fetch('/.netlify/functions/login-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          msg.style.color = 'green';
+          msg.textContent = 'Login successful! Redirecting...';
+          setTimeout(() => (window.location.href = 'dashboard.html'), 1000);
+        } else {
+          msg.style.color = 'red';
+          msg.textContent = data.error || 'Invalid credentials';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.textContent = 'Login error. Try again.';
+      }
+    });
   </script>
 </body>
 </html>
