@@ -1,30 +1,43 @@
-exports.handler = async (event) => {
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+)
+
+export default async (req, res) => {
   try {
-    const payload = new URLSearchParams(event.body);
-    const saleData = Object.fromEntries(payload);
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' })
+    }
 
-    // Example fields from Gumroad
-    const buyerEmail = saleData.email;
-    const productName = saleData.product_name;
-    const purchaseId = saleData.sale_id;
-    const isRecurring = saleData.is_recurring_billing;
+    const { email, purchase_id, product_name, price, currency } = req.body
 
-    console.log("Payment Received:", saleData);
+    if (!email) {
+      return res.status(400).json({ error: 'Email required' })
+    }
 
-    // TODO: Save to Supabase or database
-    // Example Supabase call:
-    /*
-    await supabase.from('active_users').insert([
-      { email: buyerEmail, plan: productName, recurring: isRecurring, sale_id: purchaseId }
-    ]);
-    */
+    // Insert or update active user record
+    const { data, error } = await supabase
+      .from('active_users')
+      .upsert(
+        {
+          email: email.toLowerCase(),
+          purchase_id,
+          product_name,
+          price,
+          currency,
+          activated_at: new Date().toISOString(),
+          status: 'active'
+        },
+        { onConflict: 'email' }
+      )
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "Payment recorded successfully" }),
-    };
+    if (error) throw error
+
+    return res.status(200).json({ success: true })
   } catch (err) {
-    console.error("Webhook error:", err);
-    return { statusCode: 500, body: "Webhook processing failed" };
+    console.error(err)
+    return res.status(500).json({ error: 'Internal server error' })
   }
-};
+}
