@@ -1,46 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Register - Stream Cleaner Pro</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <title>Register | StreamPilot</title>
   <style>
-    body {font-family: Arial, sans-serif; background:#f9fafb; display:flex; justify-content:center; align-items:center; height:100vh;}
-    .auth-box {background:#fff; padding:2rem; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.08); width:320px; text-align:center;}
-    .auth-box input {width:100%; padding:0.8rem; margin:0.5rem 0; border:1px solid #d1d5db; border-radius:6px;}
-    .auth-box button {width:100%; padding:0.8rem; background:#22c55e; color:#fff; border:none; border-radius:6px; cursor:pointer;}
-    .auth-box button:hover {background:#16a34a;}
-    a {display:block; margin-top:1rem; font-size:0.9rem; color:#2563eb;}
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: white;
+    }
+    .card {
+      background: #fff;
+      color: #1e293b;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    p { margin-top: 1rem; font-size: 0.9rem; }
+    a { color: #3b82f6; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="auth-box">
+  <div class="card">
     <h2>Register</h2>
-    <input type="email" id="regEmail" placeholder="Email" />
-    <input type="password" id="regPassword" placeholder="Password" />
-    <button onclick="register()">Sign Up & Pay</button>
-    <a href="login.html">Already have an account? Login</a>
+    <p>Enter your email used during payment</p>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="registerBtn">Create Account</button>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+    <p id="message"></p>
   </div>
 
   <script>
-     const supabaseUrl = "https://rfuilglpyamrjbtkacqw.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdWlsZ2xweWFtcmpidGthY3F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MjAxNzEsImV4cCI6MjA3MDM5NjE3MX0.vVUrlCdmenG-wh3X3lK_4UeiVDpbvGBbGSYalwY4u9I";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const registerBtn = document.getElementById('registerBtn');
+    const msg = document.getElementById('message');
 
-  async function register() {
-  const email = document.getElementById("regEmail").value;
-  const password = document.getElementById("regPassword").value;
+    registerBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("Account created! Redirecting to payment...");
-    window.location.href = "https://streamcleanerpro.gumroad.com/l/yctnse?wanted=true";
-  }
-}
+      if (!email || !password) {
+        msg.textContent = 'Please enter both fields.';
+        msg.style.color = 'red';
+        return;
+      }
 
+      msg.textContent = 'Checking activation...';
+
+      try {
+        const res = await fetch('/.netlify/functions/verify-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          msg.style.color = 'green';
+          msg.textContent = 'Registration successful! Redirecting...';
+          setTimeout(() => (window.location.href = 'login.html'), 1500);
+        } else {
+          msg.style.color = 'red';
+          msg.textContent = data.error || 'Not activated — please complete payment first.';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.textContent = 'Error registering. Try again.';
+      }
+    });
   </script>
 </body>
 </html>
-
